@@ -306,3 +306,145 @@ cat data8
 ```
 
 ![password](pics/2025-06-24-15-32-39.png)
+
+Password: FO5dwFsc0cbaIiH0h8J2eUks2vdTDwAn
+
+## Bandit 14
+
+> The password for the next level is stored in `/etc/bandit_pass/bandit14` and can only be read by user bandit14. For this level, you don’t get the next password, but you get a private SSH key that can be used to log into the next level.
+
+The ssh key is called `sshkey.private` and is located in the home directory. To login to the next level, you can use the following command:
+
+```bash
+ssh -i sshkey.private bandit14@localhost -p 2220
+```
+
+Now retrieve the password from `/etc/bandit_pass/bandit14`:
+
+```bash
+cat /etc/bandit_pass/bandit14
+```
+
+![password](pics/2025-06-24-16-58-14.png)
+
+Password: MU4VWeTyJk8ROof1qqmcBPaLh7lDCPvS
+
+## Bandit 15
+> The password for the next level can be retrieved by submitting the password of the current level to port 30000 on localhost.
+
+```bash
+cat /etc/bandit_pass/bandit14 | nc localhost 30000
+```
+
+![password](pics/2025-06-27-11-42-45.png)
+
+Password: 8xCjnmgoKbGLhHFAZlGE5Tmu4M2tKJQo
+
+## Bandit 16
+
+> The password for the next level can be retrieved by submitting the password of the current level to port 30001 on localhost using SSL/TLS encryption.
+
+To connect to a service using SSL/TLS, you can use the `openssl` command:
+
+```bash
+openssl s_client -connect localhost:30001
+8xCjnmgoKbGLhHFAZlGE5Tmu4M2tKJQo
+```
+
+This command connects to the service on port 30001 and sends the password. The response will contain the password for the next level.
+
+![password](pics/2025-06-27-12-08-13.png)
+
+Password: kSkvUpMQ7lBYyCM4GBPvCvT1BfWRy0Dx
+
+## Bandit 17
+
+> The credentials for the next level can be retrieved by submitting the password of the current level to a port on localhost in the range 31000 to 32000. First find out which of these ports have a server listening on them. Then find out which of those speak SSL/TLS and which don’t. There is only 1 server that will give the next credentials, the others will simply send back to you whatever you send to it.
+
+To find out which ports are open and speak SSL/TLS in the range 31000 to 32000, you can use the `nmap` command (-sV option is used to detect service versions):
+
+```bash
+nmap -sV -p 31000-32000 localhost
+```
+
+![nmap results](pics/2025-06-27-12-26-03.png)
+
+As we can see:
+- ports 31046/tcp, 31518/tcp, 31691/tcp, 31790/tcp, and 31960/tcp are open. 
+- ports 31518 and 31790 are SSL/TLS ports.
+- port 31790 responds with "Please enter the current password"
+
+Let's connect to port 31790 using `openssl` and send the current password:
+
+```bash
+openssl s_client -connect localhost:31790
+kSkvUpMQ7lBYyCM4GBPvCvT1BfWRy0Dx
+```
+
+![response](pics/2025-06-27-12-29-20.png)
+
+We get a KEYUPDATE message back. This happens because when openssl is used interactively (which means neither -quiet nor -ign_eof have been given), then certain commands are also recognized which perform special operations. These commands are a letter which must appear at the start of a line. They are listed below.
+
+- `k` - Send a key update message to the server (TLSv1.3 only)
+- `K` - Send a key update message to the server and request one back (TLSv1.3 only)
+- `Q` - End the current SSL connection and exit.
+- `R` - Renegotiate the SSL session (TLSv1.2 and below only).
+
+To get the password, we can use the `-quiet` option to suppress the interactive mode and just get the response:
+
+```bash
+openssl s_client -connect localhost:31790 -quiet
+kSkvUpMQ7lBYyCM4GBPvCvT1BfWRy0Dx
+```
+
+![response](pics/2025-06-27-12-44-55.png)
+
+We get and RSA private key back. To use the key to login to the next level, we have to logout from bandit16, save the key to a file and use it with the `ssh` command:
+
+```bash
+exit
+echo "-----BEGIN RSA PRIVATE KEY-----
+MIIEogIBAAKCAQEAvmOkuifmMg6HL2YPIOjon6iWfbp7c3jx34YkYWqUH57SUdyJ
+imZzeyGC0gtZPGujUSxiJSWI/oTqexh+cAMTSMlOJf7+BrJObArnxd9Y7YT2bRPQ
+Ja6Lzb558YW3FZl87ORiO+rW4LCDCNd2lUvLE/GL2GWyuKN0K5iCd5TbtJzEkQTu
+DSt2mcNn4rhAL+JFr56o4T6z8WWAW18BR6yGrMq7Q/kALHYW3OekePQAzL0VUYbW
+JGTi65CxbCnzc/w4+mqQyvmzpWtMAzJTzAzQxNbkR2MBGySxDLrjg0LWN6sK7wNX
+x0YVztz/zbIkPjfkU1jHS+9EbVNj+D1XFOJuaQIDAQABAoIBABagpxpM1aoLWfvD
+KHcj10nqcoBc4oE11aFYQwik7xfW+24pRNuDE6SFthOar69jp5RlLwD1NhPx3iBl
+J9nOM8OJ0VToum43UOS8YxF8WwhXriYGnc1sskbwpXOUDc9uX4+UESzH22P29ovd
+d8WErY0gPxun8pbJLmxkAtWNhpMvfe0050vk9TL5wqbu9AlbssgTcCXkMQnPw9nC
+YNN6DDP2lbcBrvgT9YCNL6C+ZKufD52yOQ9qOkwFTEQpjtF4uNtJom+asvlpmS8A
+vLY9r60wYSvmZhNqBUrj7lyCtXMIu1kkd4w7F77k+DjHoAXyxcUp1DGL51sOmama
++TOWWgECgYEA8JtPxP0GRJ+IQkX262jM3dEIkza8ky5moIwUqYdsx0NxHgRRhORT
+8c8hAuRBb2G82so8vUHk/fur85OEfc9TncnCY2crpoqsghifKLxrLgtT+qDpfZnx
+SatLdt8GfQ85yA7hnWWJ2MxF3NaeSDm75Lsm+tBbAiyc9P2jGRNtMSkCgYEAypHd
+HCctNi/FwjulhttFx/rHYKhLidZDFYeiE/v45bN4yFm8x7R/b0iE7KaszX+Exdvt
+SghaTdcG0Knyw1bpJVyusavPzpaJMjdJ6tcFhVAbAjm7enCIvGCSx+X3l5SiWg0A
+R57hJglezIiVjv3aGwHwvlZvtszK6zV6oXFAu0ECgYAbjo46T4hyP5tJi93V5HDi
+Ttiek7xRVxUl+iU7rWkGAXFpMLFteQEsRr7PJ/lemmEY5eTDAFMLy9FL2m9oQWCg
+R8VdwSk8r9FGLS+9aKcV5PI/WEKlwgXinB3OhYimtiG2Cg5JCqIZFHxD6MjEGOiu
+L8ktHMPvodBwNsSBULpG0QKBgBAplTfC1HOnWiMGOU3KPwYWt0O6CdTkmJOmL8Ni
+blh9elyZ9FsGxsgtRBXRsqXuz7wtsQAgLHxbdLq/ZJQ7YfzOKU4ZxEnabvXnvWkU
+YOdjHdSOoKvDQNWu6ucyLRAWFuISeXw9a/9p7ftpxm0TSgyvmfLF2MIAEwyzRqaM
+77pBAoGAMmjmIJdjp+Ez8duyn3ieo36yrttF5NSsJLAbxFpdlc1gvtGCWW+9Cq0b
+dxviW8+TFVEBl1O4f7HVm6EpTscdDxU+bCXWkfjuRb7Dy9GOtt9JPsX8MBTakzh3
+vBgsyi/sN3RqRBcGU40fOoZyfAMT8s1m/uYv52O6IgeuZ/ujbjY=
+-----END RSA PRIVATE KEY-----" > bandit17_key
+chmod 600 bandit17_key
+ssh -i bandit17_key bandit17@bandit.labs.overthewire.org -p 2220
+```
+
+## Bandit 18
+
+> There are 2 files in the homedirectory: passwords.old and passwords.new. The password for the next level is in passwords.new and is the only line that has been changed between passwords.old and passwords.new.  
+NOTE: if you have solved this level and see ‘Byebye!’ when trying to log into bandit18, this is related to the next level, bandit19
+
+To find the changed line between the two files, you can use the `diff` command:
+
+```bash
+diff passwords.old passwords.new
+```
+
+![password](pics/2025-06-27-12-54-31.png)
+
+Password: x2gLTTjFwMOhQ8oWNbMN362QKxfRqGlO

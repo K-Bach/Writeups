@@ -1,4 +1,4 @@
-# Bandit Writeup
+# Bandit Writeups
 https://overthewire.org/wargames/bandit/bandit0.html
 ## Bandit 0
 

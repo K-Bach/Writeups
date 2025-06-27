@@ -505,3 +505,58 @@ Now we can send the password for the previous level:
 ![ok](pics/2025-06-27-23-22-50.png)
 
 Password: EeoULMCra2q0dSkYj561DX7s1CpBuOBt
+
+## Bandit 22
+
+> A program is running automatically at regular intervals from cron, the time-based job scheduler. Look in /etc/cron.d/ for the configuration and see what command is being executed.
+
+Let's check the cronjob configuration in `/etc/cron.d/`:
+
+![process](pics/2025-06-27-23-58-53.png)
+
+```bash
+cat /etc/cron.d/bandit22
+```
+
+The cronjob runs cronjob_bandit22.sh at every reboot and every minute. Let's check the script:
+
+```bash
+cat /usr/bin/cronjob_bandit22.sh
+```
+
+So every minute, the cron job copies the password for bandit22 into /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv. Let's check the file:
+
+```bash
+cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
+```
+
+![password](pics/2025-06-28-00-01-53.png)
+
+Password: tRae0UfB9v0UzbCdn9cY0gQnds9GF58Q
+
+## Bandit 23
+
+> A program is running automatically at regular intervals from cron, the time-based job scheduler. Look in /etc/cron.d/ for the configuration and see what command is being executed.  
+NOTE: Looking at shell scripts written by other people is a very useful skill. The script for this level is intentionally made easy to read. If you are having problems understanding what it does, try executing it to see the debug information it prints.
+
+Let's check the cronjob configuration in `/etc/cron.d/`:
+
+```bash
+cat /etc/cron.d/cronjob_bandit23
+```
+The cronjob runs cronjob_bandit23.sh at every reboot and every minute. Let's check the script:
+
+```bash
+cat /usr/bin/cronjob_bandit23.sh
+```
+
+![script](pics/2025-06-28-00-16-28.png)
+
+As we can see, the script stores a password in a file called as the output of echo ```echo I am user bandit23 $myname | md5sum | cut -d ' ' -f 1```, with $myname being the username of the user running the script. So we can just compute the md5 hash of our username and check the file:
+
+```bash
+echo I am user bandit23 | md5sum | cut -d ' ' -f 1
+cat /tmp/8ca319486bfbbc3663ea0fbe81326349
+```
+
+and the password we get is: 0Zf11ioIjMVN551jX3CmStKLYqjk54Ga

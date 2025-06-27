@@ -448,3 +448,60 @@ diff passwords.old passwords.new
 ![password](pics/2025-06-27-12-54-31.png)
 
 Password: x2gLTTjFwMOhQ8oWNbMN362QKxfRqGlO
+
+## Bandit 19
+
+> The password for the next level is stored in a file readme in the homedirectory. Unfortunately, someone has modified .bashrc to log you out when you log in with SSH.
+
+To bypass the `.bashrc` modification that logs you out, you can use the `ssh` command with the `-T` option, which disables pseudo-terminal allocation:
+
+```bash
+ssh -T bandit19@bandit.labs.overthewire.org -p 2220
+```
+
+![password](pics/2025-06-27-22-51-19.png)
+
+Password: cGWpMaKXVwDUNgPAVJbWYuGHVn9zl3j8
+
+## Bandit 20
+
+> To gain access to the next level, you should use the setuid binary in the homedirectory. Execute it without arguments to find out how to use it. The password for this level can be found in the usual place (/etc/bandit_pass), after you have used the setuid binary.
+
+If we run the binary without arguments it says that it executes commands as user bandit20. So we just have to execute the command `cat /etc/bandit_pass/bandit20` to get the password for the next level:   
+
+```bash
+./bandit20-do cat /etc/bandit_pass/bandit20
+```
+
+![password](pics/2025-06-27-23-03-20.png)
+
+Password: 0qXahG8ZjOVMN9Ghs7iOWsCfZyXOUbYO
+
+## Bandit 21
+
+> There is a setuid binary in the homedirectory that does the following: it makes a connection to localhost on the port you specify as a commandline argument. It then reads a line of text from the connection and compares it to the password in the previous level (bandit20). If the password is correct, it will transmit the password for the next level (bandit21).  
+NOTE: Try connecting to your own network daemon to see if it works as you think
+
+First lets try to run the program without arguments to see how it works:
+
+![output](pics/2025-06-27-23-13-19.png)
+
+Ok so we can connect to a port on localhost and send the password for the previous level. Let's start a simple TCP server on port 30000 using `nc` (netcat):
+
+```bash
+nc -l -p 30003
+```
+
+Now we can run the setuid binary and connect to our server:
+
+```bash
+./suconnect 30003
+```
+
+Now we can send the password for the previous level:
+
+![password](pics/2025-06-27-23-22-12.png)
+
+![ok](pics/2025-06-27-23-22-50.png)
+
+Password: EeoULMCra2q0dSkYj561DX7s1CpBuOBt

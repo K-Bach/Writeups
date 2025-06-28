@@ -878,3 +878,99 @@ Now we can check the README.md file in the branch. The password is there:
 ![password](pics/2025-06-28-23-18-13.png)
 
 Password: qp30ex3VLz5MDG1n91YowTv4Q8l7CDZL
+
+## Bandit 31
+
+> There is a git repository at ssh://bandit30-git@localhost/home/bandit30-git/repo via the port 2220. The password for the user bandit30-git is the same as for the user bandit30.  
+Clone the repository and find the password for the next level.
+
+To clone the git repository, we can use the `git clone` command with the provided URL and port. In my case, I will clone it into a directory called `pippo3`:
+
+```bash
+git clone ssh://bandit30-git@localhost:2220/home/bandit30-git/repo pippo3
+```
+
+When prompted for the password, we enter the password for bandit30: qp30ex3VLz5MDG1n91YowTv4Q8l7CDZL
+
+This time the README.md doesn't seem to give any usefull information.
+
+![no info](pics/2025-06-28-23-37-47.png)
+
+The commit history has only the initial commit and we have only one branch. Even the .git folder seems to not contain any useful info...unless the packed-refs file that mentions a "secret" tag. Let's list the tags:
+
+```bash
+git tag
+```
+
+![tags](pics/2025-06-28-23-55-36.png)
+
+Let's check the tag "secret":
+
+```bash
+git show secret
+```
+
+We get the password for the next level: fb5S2xb7bRyFmAvQYQGEqsbhVyJqhnDy
+
+## Bandit 32
+
+> There is a git repository at ssh://bandit31-git@localhost/home/bandit31-git/repo via the port 2220. The password for the user bandit31-git is the same as for the user bandit31.  
+Clone the repository and find the password for the next level.
+
+To clone the git repository, we can use the `git clone` command with the provided URL and port. In my case, I will clone it into a directory called `pippo4`:
+
+```bash
+git clone ssh://bandit31-git@localhost:2220/home/bandit31-git/repo pippo4
+```
+
+When prompted for the password, we enter the password for bandit31: fb5S2xb7bRyFmAvQYQGEqsbhVyJqhnDy
+
+The README.md file says that we need to push a file called key.txt containing the string "May I come in?" to master:
+
+![readme file](pics/2025-06-28-23-59-23.png)
+
+While listing the files in the repo i noticed a gitignore file. The file ignores .txt files, so we need to remove it from the .gitignore file to be able to add our key.txt file. 
+
+Now let's create the file `key.txt` with the content "May I come in?":
+
+```bash
+echo "May I come in?" > key.txt
+```
+
+Now we can add the file to the repository, commit it and push it to the master branch:
+
+```bash
+git add key.txt
+git commit -m "Add key.txt"
+git push origin master
+```
+
+After pushing the file, we are asked for the bandit31 password. We enter the password for bandit31: fb5S2xb7bRyFmAvQYQGEqsbhVyJqhnDy.
+
+Now we get the password: 3O9RfhqyAlVBEZpVb6LYStshZoqoSx5K
+
+![password](pics/2025-06-29-00-04-49.png)
+
+## Bandit 33
+
+> After all this git stuff, it’s time for another escape. Good luck!
+
+It seems like everything we write gets uppercased:
+
+![uppercased](pics/2025-06-29-00-06-58.png)
+
+There is probably a script that uppercases everything we type and just executes it. So what if we pass a variable containing the bash name? $0 for example:
+
+![got the shell](pics/2025-06-29-00-23-15.png)
+
+Now that we have the shell we can read the password for the next level from `/etc/bandit_pass/bandit33`:
+
+```bash
+cat /etc/bandit_pass/bandit33
+```
+
+Password: tQdtbs5D5i2vJwkO8mEyYEyTL8izoeJ0
+
+## Bandit 34
+
+![last level](pics/2025-06-29-00-27-28.png)

@@ -779,3 +779,102 @@ If we want a shell, we can use the `:shell` command to spawn a shell. But this w
 ```
 
 Now we can spawn a shell using the `:shell` command, and get the password.
+
+## Bandit 27
+
+> Good job getting a shell! Now hurry and grab the password for bandit27!
+
+In the home directory of bandit26, there is a file called `bandit27-do`. This file is a setuid binary that allows us to execute commands as user bandit27. We can use this binary to read the password for bandit27 from `/etc/bandit_pass/bandit27`.
+
+To do this, we can run the following command:
+
+```bash
+./bandit27-do cat /etc/bandit_pass/bandit27
+```
+
+And we get the password: upsNCc7vzaRDx6oZC6GiR6ERwe1MowGB
+
+## Bandit 28
+
+> There is a git repository at `ssh://bandit27-git@localhost/home/bandit27-git/repo` via the port 2220. The password for the user bandit27-git is the same as for the user bandit27.  
+Clone the repository and find the password for the next level.
+
+To clone the git repository, we can use the `git clone` command with the provided URL and port. In my case, I will clone it into a directory called `pippo`:
+
+```bash
+git clone ssh://bandit27-git@localhost:2220/home/bandit27-git/repo pippo
+```
+
+When prompted for the password, we enter the password for bandit27: upsNCc7vzaRDx6oZC6GiR6ERwe1MowGB
+
+After cloning the repository, we can check the files in the cloned directory. There is a README file that contains the password for the next level.
+
+![password](pics/2025-06-28-23-06-31.png)
+
+Password: Yz9IpL0sBcCeuG7m9uQFt8ZNpS4HZRcN
+
+## Bandit 29
+
+> There is a git repository at ssh://bandit28-git@localhost/home/bandit28-git/repo via the port 2220. The password for the user bandit28-git is the same as for the user bandit28.  
+Clone the repository and find the password for the next level.
+
+To clone the git repository, we can use the `git clone` command with the provided URL and port. In my case, I will clone it into a directory called `pippo1`:
+
+```bash
+git clone ssh://bandit28-git@localhost:2220/home/bandit28-git/repo pippo1
+```
+
+When prompted for the password, we enter the password for bandit28: Yz9IpL0sBcCeuG7m9uQFt8ZNpS4HZRcN
+
+This time the README.md file contains the credentials for the next level, the password is not specified though.
+
+![hidden password](pics/2025-06-28-23-10-09.png)
+
+To find the password, we can use the `git log` command to check the commit history and see if there are any commits that contain the password:
+
+![commits](pics/2025-06-28-23-11-07.png)
+
+There is a commit, with id 674690a00a0056ab96048f7317b9ec20c057c06b, that says "fix info leak". This commit likely contains the password for the next level.
+
+To check the commit, we can use the `git show` command:
+
+```bash
+git show 674690a00a0056ab96048f7317b9ec20c057c06b
+```
+
+![password](pics/2025-06-28-23-12-25.png)
+
+And we found the password: 4pT1t5DENaYuqnqvadYs1oE4QLCdjmJ7
+
+## Bandit 30
+
+> There is a git repository at ssh://bandit29-git@localhost/home/bandit29-git/repo via the port 2220. The password for the user bandit29-git is the same as for the user bandit29.  
+Clone the repository and find the password for the next level.
+
+To clone the git repository, we can use the `git clone` command with the provided URL and port. In my case, I will clone it into a directory called `pippo2`:
+
+```bash
+git clone ssh://bandit29-git@localhost:2220/home/bandit29-git/repo pippo2
+```
+
+When prompted for the password, we enter the password for bandit29: 4pT1t5DENaYuqnqvadYs1oE4QLCdjmJ7
+
+This time the README.md file contains the credentials for the next level, the password is not specified though. It says "<no passwords in production!>". This propably means that the password is stored in another branch. Maybe master or development. Let's check the branches:
+
+```bash
+git branch -a
+```
+
+![branches](pics/2025-06-28-23-16-51.png)
+
+There is a branch called `dev`. Let's switch to that branch:
+
+```bash
+git checkout dev
+```
+
+Now we can check the README.md file in the branch. The password is there:
+
+![password](pics/2025-06-28-23-18-13.png)
+
+Password: qp30ex3VLz5MDG1n91YowTv4Q8l7CDZL

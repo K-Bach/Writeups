@@ -23,7 +23,7 @@ To read the password, use:
 ```bash
 cat readme
 ```
-![password](pics/image.png)
+![password](pics/bandit/image.png)
 
 Password: ZjLjTmM6FvvyRnrb2rfNWOZOTa6ip5If
 
@@ -35,7 +35,7 @@ I tried to use `cat -` but it didn't work. Instead, I used:
 cat ./-
 ```
 
-![password](pics/image-1.png)
+![password](pics/bandit/image-1.png)
 
 Password: 263JGJPfgU6LtdEvgfWU1XP5yac29mFx
 
@@ -49,7 +49,7 @@ To read the file with spaces in its name, you can use quotes or escape the space
 cat "spaces in this filename"
 ```
 
-![password](pics/image-2.png)
+![password](pics/bandit/image-2.png)
 
 Password: MNk8KNH3Usiio41PRUEoDFPqfxLPlSmx
 
@@ -70,7 +70,7 @@ To read the hidden file, you can use:
 cat .hidden
 ```
 
-![alt text](pics/image-3.png)
+![alt text](pics/bandit/image-3.png)
 
 Password: 2WmrDFRmJIq3IPxneAaMGhap0pFhF3NJ
 
@@ -85,7 +85,7 @@ cd inhere
 file ./*
 ```
 
-![files](pics/2025-06-24-12-09-08.png)
+![files](pics/bandit/2025-06-24-12-09-08.png)
 
 To read the human-readable file, you can use:
 
@@ -93,7 +93,7 @@ To read the human-readable file, you can use:
 cat ./inhere/-file07
 ```
 
-![password](pics/2025-06-24-12-20-46.png)
+![password](pics/bandit/2025-06-24-12-20-46.png)
 
 Password: 4oQYVPkxZOOEOO5pTW81FB8j8lxXGUQw
 
@@ -112,7 +112,7 @@ find . -type f -size 1033c ! -executable -readable
 ```
 This command searches for files (`-type f`) that are exactly 1033 bytes in size (`-size 1033c`), not executable (`! -executable`), and human-readable.
 
-![file](pics/2025-06-24-12-26-31.png)
+![file](pics/bandit/2025-06-24-12-26-31.png)
 
 To read the file, you can use:
 
@@ -120,7 +120,7 @@ To read the file, you can use:
 cat ./maybehere07/.file2
 ```
 
-![password](pics/2025-06-24-12-27-28.png)
+![password](pics/bandit/2025-06-24-12-27-28.png)
 
 Password: HWasnPhtq9AVKe0dmk45nxy20cvUa6EG
 
@@ -139,7 +139,7 @@ find / -user bandit7 -group bandit6 -size 33c 2>/dev/null
 
 This command searches for files owned by user `bandit7`, group `bandit6`, and exactly 33 bytes in size (`-size 33c`). The `2>/dev/null` part is used to suppress error messages about permission denied for directories you cannot access.
 
-![password](pics/2025-06-24-12-34-42.png)
+![password](pics/bandit/2025-06-24-12-34-42.png)
 
 Password: morbNTDkSW6jIlUc0ymOdMaLnOlFVAaj
 
@@ -153,7 +153,7 @@ To find the password, you can use the `grep` command to search for the word "mil
 grep millionth data.txt
 ```
 
-![password](pics/2025-06-24-12-43-34.png)
+![password](pics/bandit/2025-06-24-12-43-34.png)
 
 Password: dfwvzFQi4mU0wfNbFOe9RoWskMLg7eEc
 
@@ -167,7 +167,7 @@ To find the password, you can use the `uniq` command in combination with `sort` 
 sort data.txt | uniq -u
 ```
 
-![password](pics/2025-06-24-12-58-10.png)
+![password](pics/bandit/2025-06-24-12-58-10.png)
 
 Password: 4CKMh1JI91bUIZZPXDqGanal4xvAg0JM
 
@@ -181,7 +181,7 @@ To find the password, you can use the `grep` command to search for human-readabl
 strings data.txt | grep '='
 ```
 
-![password](pics/2025-06-24-13-11-05.png)
+![password](pics/bandit/2025-06-24-13-11-05.png)
 
 Password: FGUW5ilLVJrxX9kMYMmlN4MgbpfMiqey
 
@@ -194,7 +194,7 @@ To find the password, you can use the `base64` command to decode the contents of
 ```bash
 base64 -d data.txt
 ```
-![password](pics/2025-06-24-13-13-54.png)
+![password](pics/bandit/2025-06-24-13-13-54.png)
 
 Password: dtR173fZKb0RRsDFSGsg2RWnpNVj3qRr
 
@@ -208,7 +208,7 @@ To find the password, you can use the `tr` command to rotate the letters:
 cat data.txt | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 ```
 
-![password](pics/2025-06-24-14-12-02.png)
+![password](pics/bandit/2025-06-24-14-12-02.png)
 
 Password: 7x16WNeHIi5YkIhWsfFIqoognUTyj9Q4
 
@@ -223,11 +223,11 @@ mktemp -d
 cp data.txt /tmp/tmp.JpxkZDWV3M/data.txt
 ```
 
-![](pics/2025-06-24-14-21-06.png)
+![](pics/bandit/2025-06-24-14-21-06.png)
 
 This is the content of `data.txt`:
 
-![data](pics/2025-06-24-14-43-04.png)
+![data](pics/bandit/2025-06-24-14-43-04.png)
 
 The hint tells us that it's a hexdump. We can convert it back to binary using `xxd`:
 
@@ -239,7 +239,7 @@ The content is unreadable, so we have to figure out witch compression algorithm 
 
 And we have a match with `gzip`:
 
-![gzip signature](pics/2025-06-24-14-49-28.png)
+![gzip signature](pics/bandit/2025-06-24-14-49-28.png)
 
 so we can decompress it using `gzip`:
 
@@ -250,7 +250,7 @@ gzip -d binary_data.gz
 
 The content is still unreadable, so we can try to decompress it again. This time the signature is `bzip2`:
 
-![bzip2 signature](pics/2025-06-24-14-57-44.png)
+![bzip2 signature](pics/bandit/2025-06-24-14-57-44.png)
     
 ```bash
 cp binary_data binary_data.bz2
@@ -305,7 +305,7 @@ Finally we have a readable file:
 cat data8
 ```
 
-![password](pics/2025-06-24-15-32-39.png)
+![password](pics/bandit/2025-06-24-15-32-39.png)
 
 Password: FO5dwFsc0cbaIiH0h8J2eUks2vdTDwAn
 
@@ -325,7 +325,7 @@ Now retrieve the password from `/etc/bandit_pass/bandit14`:
 cat /etc/bandit_pass/bandit14
 ```
 
-![password](pics/2025-06-24-16-58-14.png)
+![password](pics/bandit/2025-06-24-16-58-14.png)
 
 Password: MU4VWeTyJk8ROof1qqmcBPaLh7lDCPvS
 
@@ -336,7 +336,7 @@ Password: MU4VWeTyJk8ROof1qqmcBPaLh7lDCPvS
 cat /etc/bandit_pass/bandit14 | nc localhost 30000
 ```
 
-![password](pics/2025-06-27-11-42-45.png)
+![password](pics/bandit/2025-06-27-11-42-45.png)
 
 Password: 8xCjnmgoKbGLhHFAZlGE5Tmu4M2tKJQo
 
@@ -353,7 +353,7 @@ openssl s_client -connect localhost:30001
 
 This command connects to the service on port 30001 and sends the password. The response will contain the password for the next level.
 
-![password](pics/2025-06-27-12-08-13.png)
+![password](pics/bandit/2025-06-27-12-08-13.png)
 
 Password: kSkvUpMQ7lBYyCM4GBPvCvT1BfWRy0Dx
 
@@ -367,7 +367,7 @@ To find out which ports are open and speak SSL/TLS in the range 31000 to 32000, 
 nmap -sV -p 31000-32000 localhost
 ```
 
-![nmap results](pics/2025-06-27-12-26-03.png)
+![nmap results](pics/bandit/2025-06-27-12-26-03.png)
 
 As we can see:
 - ports 31046/tcp, 31518/tcp, 31691/tcp, 31790/tcp, and 31960/tcp are open. 
@@ -381,7 +381,7 @@ openssl s_client -connect localhost:31790
 kSkvUpMQ7lBYyCM4GBPvCvT1BfWRy0Dx
 ```
 
-![response](pics/2025-06-27-12-29-20.png)
+![response](pics/bandit/2025-06-27-12-29-20.png)
 
 We get a KEYUPDATE message back. This happens because when openssl is used interactively (which means neither -quiet nor -ign_eof have been given), then certain commands are also recognized which perform special operations. These commands are a letter which must appear at the start of a line. They are listed below.
 
@@ -397,7 +397,7 @@ openssl s_client -connect localhost:31790 -quiet
 kSkvUpMQ7lBYyCM4GBPvCvT1BfWRy0Dx
 ```
 
-![response](pics/2025-06-27-12-44-55.png)
+![response](pics/bandit/2025-06-27-12-44-55.png)
 
 We get and RSA private key back. To use the key to login to the next level, we have to logout from bandit16, save the key to a file and use it with the `ssh` command:
 
@@ -445,7 +445,7 @@ To find the changed line between the two files, you can use the `diff` command:
 diff passwords.old passwords.new
 ```
 
-![password](pics/2025-06-27-12-54-31.png)
+![password](pics/bandit/2025-06-27-12-54-31.png)
 
 Password: x2gLTTjFwMOhQ8oWNbMN362QKxfRqGlO
 
@@ -459,7 +459,7 @@ To bypass the `.bashrc` modification that logs you out, you can use the `ssh` co
 ssh -T bandit19@bandit.labs.overthewire.org -p 2220
 ```
 
-![password](pics/2025-06-27-22-51-19.png)
+![password](pics/bandit/2025-06-27-22-51-19.png)
 
 Password: cGWpMaKXVwDUNgPAVJbWYuGHVn9zl3j8
 
@@ -473,7 +473,7 @@ If we run the binary without arguments it says that it executes commands as user
 ./bandit20-do cat /etc/bandit_pass/bandit20
 ```
 
-![password](pics/2025-06-27-23-03-20.png)
+![password](pics/bandit/2025-06-27-23-03-20.png)
 
 Password: 0qXahG8ZjOVMN9Ghs7iOWsCfZyXOUbYO
 
@@ -484,7 +484,7 @@ NOTE: Try connecting to your own network daemon to see if it works as you think
 
 First lets try to run the program without arguments to see how it works:
 
-![output](pics/2025-06-27-23-13-19.png)
+![output](pics/bandit/2025-06-27-23-13-19.png)
 
 Ok so we can connect to a port on localhost and send the password for the previous level. Let's start a simple TCP server on port 30000 using `nc` (netcat):
 
@@ -500,9 +500,9 @@ Now we can run the setuid binary and connect to our server:
 
 Now we can send the password for the previous level:
 
-![password](pics/2025-06-27-23-22-12.png)
+![password](pics/bandit/2025-06-27-23-22-12.png)
 
-![ok](pics/2025-06-27-23-22-50.png)
+![ok](pics/bandit/2025-06-27-23-22-50.png)
 
 Password: EeoULMCra2q0dSkYj561DX7s1CpBuOBt
 
@@ -512,7 +512,7 @@ Password: EeoULMCra2q0dSkYj561DX7s1CpBuOBt
 
 Let's check the cronjob configuration in `/etc/cron.d/`:
 
-![process](pics/2025-06-27-23-58-53.png)
+![process](pics/bandit/2025-06-27-23-58-53.png)
 
 ```bash
 cat /etc/cron.d/bandit22
@@ -530,7 +530,7 @@ So every minute, the cron job copies the password for bandit22 into /tmp/t7O6lds
 cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv
 ```
 
-![password](pics/2025-06-28-00-01-53.png)
+![password](pics/bandit/2025-06-28-00-01-53.png)
 
 Password: tRae0UfB9v0UzbCdn9cY0gQnds9GF58Q
 
@@ -550,7 +550,7 @@ The cronjob runs cronjob_bandit23.sh at every reboot and every minute. Let's che
 cat /usr/bin/cronjob_bandit23.sh
 ```
 
-![script](pics/2025-06-28-00-16-28.png)
+![script](pics/bandit/2025-06-28-00-16-28.png)
 
 As we can see, the script stores a password in a file called as the output of echo ```echo I am user bandit23 $myname | md5sum | cut -d ' ' -f 1```, with $myname being the username of the user running the script. So we can just compute the md5 hash of our username and check the file:
 
@@ -573,7 +573,7 @@ cat /etc/cron.d/cronjob_bandit24
 cat /usr/bin/cronjob_bandit24.sh
 ```
 
-![script](pics/2025-06-28-11-15-26.png)
+![script](pics/bandit/2025-06-28-11-15-26.png)
 
 The code does the following:
 1. Enters the directory `/var/spool/$myname/foo`, where $myname is the username of the user running the script (bandit24).
@@ -605,7 +605,7 @@ Now we wait for the cron job to run, and then we can check the output file:
 cat /tmp/kbkScriptOutput.txt
 ```
 
-![password](pics/2025-06-28-11-45-05.png)
+![password](pics/bandit/2025-06-28-11-45-05.png)
 
 Password: gb8KRRCsshuZXI0tUuR6ypOFjiZbf3G8
 
@@ -725,7 +725,7 @@ Now run the script:
 
 The script will try all combinations and print the current combination being tried. When it finds the correct combination, it will print the response from the service.
 
-![Password](pics/2025-06-28-12-35-20.png)
+![Password](pics/bandit/2025-06-28-12-35-20.png)
 
 Password: iCi86ttT4KSNe1armKiwbQNmB3YJP3q4
 
@@ -755,11 +755,11 @@ It seems like bandit26 uses `/usr/bin/showtext` as its shell. Let's check the fi
 cat /usr/bin/showtext
 ```
 
-![showtext](pics/2025-06-28-16-02-36.png)
+![showtext](pics/bandit/2025-06-28-16-02-36.png)
 
 The code executes the comand more on text.txt. So why does the session close immediately? What if the file content is too short to be displayed with more? In this case minimizing the terminal window would force more to page the content. Let's try it:
 
-![it worked](pics/2025-06-28-16-13-09.png)
+![it worked](pics/bandit/2025-06-28-16-13-09.png)
 
 It worked! Now we need to find a way to exploit this.  
 Looking on google for "more" subcommands we find that we can use the `v` command to open the file in the default editor, which is usually `vi`. Now that we are in `vi` we can open a file using the `:e` command followed by the file path.
@@ -809,7 +809,7 @@ When prompted for the password, we enter the password for bandit27: upsNCc7vzaRD
 
 After cloning the repository, we can check the files in the cloned directory. There is a README file that contains the password for the next level.
 
-![password](pics/2025-06-28-23-06-31.png)
+![password](pics/bandit/2025-06-28-23-06-31.png)
 
 Password: Yz9IpL0sBcCeuG7m9uQFt8ZNpS4HZRcN
 
@@ -828,11 +828,11 @@ When prompted for the password, we enter the password for bandit28: Yz9IpL0sBcCe
 
 This time the README.md file contains the credentials for the next level, the password is not specified though.
 
-![hidden password](pics/2025-06-28-23-10-09.png)
+![hidden password](pics/bandit/2025-06-28-23-10-09.png)
 
 To find the password, we can use the `git log` command to check the commit history and see if there are any commits that contain the password:
 
-![commits](pics/2025-06-28-23-11-07.png)
+![commits](pics/bandit/2025-06-28-23-11-07.png)
 
 There is a commit, with id 674690a00a0056ab96048f7317b9ec20c057c06b, that says "fix info leak". This commit likely contains the password for the next level.
 
@@ -842,7 +842,7 @@ To check the commit, we can use the `git show` command:
 git show 674690a00a0056ab96048f7317b9ec20c057c06b
 ```
 
-![password](pics/2025-06-28-23-12-25.png)
+![password](pics/bandit/2025-06-28-23-12-25.png)
 
 And we found the password: 4pT1t5DENaYuqnqvadYs1oE4QLCdjmJ7
 
@@ -865,7 +865,7 @@ This time the README.md file contains the credentials for the next level, the pa
 git branch -a
 ```
 
-![branches](pics/2025-06-28-23-16-51.png)
+![branches](pics/bandit/2025-06-28-23-16-51.png)
 
 There is a branch called `dev`. Let's switch to that branch:
 
@@ -875,7 +875,7 @@ git checkout dev
 
 Now we can check the README.md file in the branch. The password is there:
 
-![password](pics/2025-06-28-23-18-13.png)
+![password](pics/bandit/2025-06-28-23-18-13.png)
 
 Password: qp30ex3VLz5MDG1n91YowTv4Q8l7CDZL
 
@@ -894,7 +894,7 @@ When prompted for the password, we enter the password for bandit30: qp30ex3VLz5M
 
 This time the README.md doesn't seem to give any usefull information.
 
-![no info](pics/2025-06-28-23-37-47.png)
+![no info](pics/bandit/2025-06-28-23-37-47.png)
 
 The commit history has only the initial commit and we have only one branch. Even the .git folder seems to not contain any useful info...unless the packed-refs file that mentions a "secret" tag. Let's list the tags:
 
@@ -902,7 +902,7 @@ The commit history has only the initial commit and we have only one branch. Even
 git tag
 ```
 
-![tags](pics/2025-06-28-23-55-36.png)
+![tags](pics/bandit/2025-06-28-23-55-36.png)
 
 Let's check the tag "secret":
 
@@ -927,7 +927,7 @@ When prompted for the password, we enter the password for bandit31: fb5S2xb7bRyF
 
 The README.md file says that we need to push a file called key.txt containing the string "May I come in?" to master:
 
-![readme file](pics/2025-06-28-23-59-23.png)
+![readme file](pics/bandit/2025-06-28-23-59-23.png)
 
 While listing the files in the repo i noticed a gitignore file. The file ignores .txt files, so we need to remove it from the .gitignore file to be able to add our key.txt file. 
 
@@ -949,7 +949,7 @@ After pushing the file, we are asked for the bandit31 password. We enter the pas
 
 Now we get the password: 3O9RfhqyAlVBEZpVb6LYStshZoqoSx5K
 
-![password](pics/2025-06-29-00-04-49.png)
+![password](pics/bandit/2025-06-29-00-04-49.png)
 
 ## Bandit 33
 
@@ -957,11 +957,11 @@ Now we get the password: 3O9RfhqyAlVBEZpVb6LYStshZoqoSx5K
 
 It seems like everything we write gets uppercased:
 
-![uppercased](pics/2025-06-29-00-06-58.png)
+![uppercased](pics/bandit/2025-06-29-00-06-58.png)
 
 There is probably a script that uppercases everything we type and just executes it. So what if we pass a variable containing the bash name? $0 for example:
 
-![got the shell](pics/2025-06-29-00-23-15.png)
+![got the shell](pics/bandit/2025-06-29-00-23-15.png)
 
 Now that we have the shell we can read the password for the next level from `/etc/bandit_pass/bandit33`:
 
@@ -973,4 +973,4 @@ Password: tQdtbs5D5i2vJwkO8mEyYEyTL8izoeJ0
 
 ## Bandit 34
 
-![last level](pics/2025-06-29-00-27-28.png)
+![last level](pics/bandit/2025-06-29-00-27-28.png)

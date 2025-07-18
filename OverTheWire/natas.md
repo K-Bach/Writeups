@@ -916,8 +916,9 @@ from requests.auth import HTTPBasicAuth
 
 URL = "http://natas19.natas.labs.overthewire.org/index.php?debug=1"
 auth=HTTPBasicAuth('natas19', 'tnwER7PdfWkxsG4FNWUtoAZ9VyZTJqJr')
+maxID = 640
 
-for id in range(641):
+for id in range(maxID+1):
     id = f'{id}-admin'.encode().hex()
     cookie = f'PHPSESSID={id}'
     print(f'Trying {cookie}', end='\r')
@@ -931,3 +932,155 @@ for id in range(641):
 ![password](pics/natas/2025-07-10-14-04-11.png)
 
 Password: p5mCvP7GS2K6Bmt3gqhM2Fc1A5T8MVyw
+
+## Natas 21
+
+> The page shows this form:  
+> ![form](pics/natas/2025-07-15-22-25-10.png)  
+> The source code is:
+> ```php
+> <?php
+> 
+> function debug($msg) { /* {{{ */
+>     if(array_key_exists("debug", $_GET)) {
+>         print "DEBUG: $msg<br>";
+>     }
+> }
+> /* }}} */
+> function print_credentials() { /* {{{ */
+>     if($_SESSION and array_key_exists("admin", $_SESSION) and $_SESSION["admin"] == 1) {
+>         print "You are an admin. The credentials for the next level are:<br>";
+>         print "<pre>Username: natas21\n";
+>         print "Password: <censored></pre>";
+>     } else {
+>         print "You are logged in as a regular user. Login as an admin to retrieve credentials for natas21.";
+>     }
+> }
+> /* }}} */
+> 
+> /* we don't need this */
+> function myopen($path, $name) {
+>     //debug("MYOPEN $path $name");
+>     return true;
+> }
+> 
+> /* we don't need this */
+> function myclose() {
+>     //debug("MYCLOSE");
+>     return true;
+> }
+> 
+> function myread($sid) {
+>     debug("MYREAD $sid");
+>     if(strspn($sid, "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM-") != strlen($sid)) {
+>     debug("Invalid SID");
+>         return "";
+>     }
+>     $filename = session_save_path() . "/" . "mysess_" . $sid;
+>     if(!file_exists($filename)) {
+>         debug("Session file doesn't exist");
+>         return "";
+>     }
+>     debug("Reading from ". $filename);
+>     $data = file_get_contents($filename);
+>     $_SESSION = array();
+>     foreach(explode("\n", $data) as $line) {
+>         debug("Read [$line]");
+>         $parts = explode(" ", $line, 2);
+>         if($parts[0] != "") $_SESSION[$parts[0]] = $parts[1];
+>     }
+>     return session_encode() ?: "";
+> }
+> 
+> function mywrite($sid, $data) {
+>     // $data contains the serialized version of $_SESSION
+>     // but our encoding is better
+>     debug("MYWRITE $sid $data");
+>     // make sure the sid is alnum only!!
+>     if(strspn($sid, "1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM-") != strlen($sid)) {
+>         debug("Invalid SID");
+>         return;
+>     }
+>     $filename = session_save_path() . "/" . "mysess_" . $sid;
+>     $data = "";
+>     debug("Saving in ". $filename);
+>     ksort($_SESSION);
+>     foreach($_SESSION as $key => $value) {
+>         debug("$key => $value");
+>         $data .= "$key $value\n";
+>     }
+>     file_put_contents($filename, $data);
+>     chmod($filename, 0600);
+>     return true;
+> }
+> 
+> /* we don't need this */
+> function mydestroy($sid) {
+>     //debug("MYDESTROY $sid");
+>     return true;
+> }
+> /* we don't need this */
+> function mygarbage($t) {
+>     //debug("MYGARBAGE $t");
+>     return true;
+> }
+> 
+> session_set_save_handler(
+>     "myopen",
+>     "myclose",
+>     "myread",
+>     "mywrite",
+>     "mydestroy",
+>     "mygarbage");
+> session_start();
+> 
+> if(array_key_exists("name", $_REQUEST)) {
+>     $_SESSION["name"] = $_REQUEST["name"];
+>     debug("Name set to " . $_REQUEST["name"]);
+> }
+> 
+> print_credentials();
+> 
+> $name = "";
+> if(array_key_exists("name", $_SESSION)) {
+>     $name = $_SESSION["name"];
+> }
+> 
+> ?>
+> ```
+
+`session_set_save_handler` is used to define custom functions for session management. session_start() is called to start the session, which will use the custom functions defined above.
+The custom functions are:
+- `myopen`: Opens a session (not used in this case).
+- `myclose`: Closes a session (not used in this case).
+- `myread`: Reads the session data from a file and populates the `$_SESSION` array. It checks if the session ID is valid and if the session file exists. If it does, it reads the file contents and splits it into key-value pairs, which are then stored in the `$_SESSION` array.
+- `mywrite`: Writes the session data to a file. It serializes the `$_SESSION` array and saves it to a file named `mysess_<session_id>`. It also ensures that the session ID is valid and that the file is created with the correct permissions (0600).
+- `mydestroy`: Destroys a session (not used in this case).
+- `mygarbage`: Cleans up old session files (not used in this case).
+
+The `myread` callback is called internally by PHP when session_start() is called. The `mywrite` callback is called when the session is closed or when session_write_close() is called.
+
+The `print_credentials` function checks if the user is an admin and prints the credentials for the next level if they are. If not, it prompts the user to log in as an admin. A user is considered an admin if the `admin` key in the `$_SESSION` array is set to 1.
+
+This time the session ID is not a hex string, but a string of alphanumeric characters, and it changes every time we send a request, regardless of the name we choose.
+
+So the main goal here is to find a way to set the `admin` key in the `$_SESSION` array to 1, so that we can retrieve the credentials for natas21.
+
+To do this we have to write a new line, `admin 1`, in the session file, so that the read function will read it and set the `$_SESSION["admin"]` key to 1.  
+As we can see from the code (right after `session_start();`), anything we pass as the `name` parameter will be set as the `$_SESSION["name"]` key. So for example, if we send a request with `name=huh`, the `mywrite` function will be called and it will write a line `name huh` in the session file. Since the input is not sanitized, we can use this to our advantage by appending `admin 1` to the line, so that the session file will contain two lines: `name huh` and `admin 1`. To do this the payload must be `name=huh\nadmin 1`, which URL-encoded is `name=huh%0Aadmin%201`.
+
+So the first call with that payload will create the session file with the two lines, and the second call will read the session file and set the `$_SESSION["admin"]` key to 1, allowing us to retrieve the credentials for natas21. Let's do this with burp:
+
+First we send a request with any name, for example `huh`, we intercept it and send it to the repeater:
+
+![](pics/natas/2025-07-18-22-51-26.png)
+
+In repeater we change the `name` parameter to `huh%0Aadmin%201` and send the request to write the session file:
+
+![](pics/natas/2025-07-18-22-52-20.png)
+
+Now we send the request again: 
+
+![](pics/natas/2025-07-18-22-54-38.png)
+
+Password: BPhv63cKE1lkQl04cE5CuFTzXe15NfiH

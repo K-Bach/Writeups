@@ -1095,11 +1095,11 @@ Password: BPhv63cKE1lkQl04cE5CuFTzXe15NfiH
 > 
 > function print_credentials() { /* {{{ */
 >     if($_SESSION and array_key_exists("admin", $_SESSION) and $_SESSION["admin"] == 1) {
->     print "You are an admin. The credentials for the next level are:<br>";
->     print "<pre>Username: natas22\n";
->     print "Password: <censored></pre>";
+>       print "You are an admin. The credentials for the next level are:<br>";
+>       print "<pre>Username: natas22\n";
+>       print "Password: <censored></pre>";
 >     } else {
->     print "You are logged in as a regular user. Login as an admin to retrieve credentials for natas22.";
+>       print "You are logged in as a regular user. Login as an admin to retrieve credentials for natas22.";
 >     }
 > }
 > /* }}} */
@@ -1126,7 +1126,7 @@ session_start();
 // if update was submitted, store it
 if(array_key_exists("submit", $_REQUEST)) {
     foreach($_REQUEST as $key => $val) {
-    $_SESSION[$key] = $val;
+        $_SESSION[$key] = $val;
     }
 }
 
@@ -1143,9 +1143,9 @@ $form .= '<form action="index.php" method="POST">';
 foreach($validkeys as $key => $defval) {
     $val = $defval;
     if(array_key_exists($key, $_SESSION)) {
-    $val = $_SESSION[$key];
+        $val = $_SESSION[$key];
     } else {
-    $_SESSION[$key] = $val;
+        $_SESSION[$key] = $val;
     }
     $form .= "$key: <input name='$key' value='$val' /><br>";
 }

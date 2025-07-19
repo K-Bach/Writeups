@@ -1084,3 +1084,95 @@ Now we send the request again:
 ![](pics/natas/2025-07-18-22-54-38.png)
 
 Password: BPhv63cKE1lkQl04cE5CuFTzXe15NfiH
+
+## Natas 22
+
+> The page shows this form:  
+> ![form](pics/natas/2025-07-19-23-30-23.png)
+> The source code is:  
+> ```php
+> <?php
+> 
+> function print_credentials() { /* {{{ */
+>     if($_SESSION and array_key_exists("admin", $_SESSION) and $_SESSION["admin"] == 1) {
+>     print "You are an admin. The credentials for the next level are:<br>";
+>     print "<pre>Username: natas22\n";
+>     print "Password: <censored></pre>";
+>     } else {
+>     print "You are logged in as a regular user. Login as an admin to retrieve credentials for natas22.";
+>     }
+> }
+> /* }}} */
+> 
+> session_start();
+> print_credentials();
+> 
+> ?>
+> ```
+
+The code starts a session and checks if the user is an admin. If they are, it prints the credentials for the next level. If not, it prompts the user to log in as an admin. A user is considered an admin if the `admin` key in the `$_SESSION` array is set to 1.
+
+Let's check `http://natas21-experimenter.natas.labs.overthewire.org/`, we login with the same credentials as natas21.
+
+![page](pics/natas/2025-07-19-23-38-27.png)
+
+The page shows a form that changes the appeareance of a text element (background color, alignment, and font size).  
+The following is the source code:
+```php
+<?php
+
+session_start();
+
+// if update was submitted, store it
+if(array_key_exists("submit", $_REQUEST)) {
+    foreach($_REQUEST as $key => $val) {
+    $_SESSION[$key] = $val;
+    }
+}
+
+if(array_key_exists("debug", $_GET)) {
+    print "[DEBUG] Session contents:<br>";
+    print_r($_SESSION);
+}
+
+// only allow these keys
+$validkeys = array("align" => "center", "fontsize" => "100%", "bgcolor" => "yellow");
+$form = "";
+
+$form .= '<form action="index.php" method="POST">';
+foreach($validkeys as $key => $defval) {
+    $val = $defval;
+    if(array_key_exists($key, $_SESSION)) {
+    $val = $_SESSION[$key];
+    } else {
+    $_SESSION[$key] = $val;
+    }
+    $form .= "$key: <input name='$key' value='$val' /><br>";
+}
+$form .= '<input type="submit" name="submit" value="Update" />';
+$form .= '</form>';
+
+$style = "background-color: ".$_SESSION["bgcolor"]."; text-align: ".$_SESSION["align"]."; font-size: ".$_SESSION["fontsize"].";";
+$example = "<div style='$style'>Hello world!</div>";
+
+?>
+
+<p>Example:</p>
+<?=$example?>
+
+<p>Change example values here:</p>
+<?=$form?>
+```
+
+The code starts a session and checks if the `submit` parameter is set in the request. If it is, it updates the session with the values from the request.
+It then defines a list of valid keys and their default values. The form is generated with the valid keys and their values from the session. If a key is not set in the session, it uses the default value. This prevents the user from setting arbitrary keys in the session, like `admin=1`.
+
+If we check the code, the only two lines where session variables are set are in the first foreach, where the `$_SESSION` array is updated with the values from the request, and in the second foreach, where the valid keys are set to their values from the session or their default values. So the only way I see to set the `admin` key in the session is to make the first foreach loop set the `admin` key to 1 and make it iterate long enough to allow us to use the session on the other page. This can be done by adding `admin=1` at the beginning of the body of the request, and then add a lot of other parameters. An important detail is that the PHPSESSID we use on the main page must be the same as the one we use on the experimenter page.
+
+![request with long body](pics/natas/2025-07-20-00-23-42.png)
+
+Immediately after sending the request, we refresh the main page and we can see that the session is now set to admin:
+
+![password](pics/natas/2025-07-20-00-24-45.png)
+
+Password: d8rwGBl0Xslg3b76uh3fEbSlnOUBlozz

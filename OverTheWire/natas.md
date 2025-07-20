@@ -1112,7 +1112,7 @@ Password: BPhv63cKE1lkQl04cE5CuFTzXe15NfiH
 
 The code starts a session and checks if the user is an admin. If they are, it prints the credentials for the next level. If not, it prompts the user to log in as an admin. A user is considered an admin if the `admin` key in the `$_SESSION` array is set to 1.
 
-Let's check `http://natas21-experimenter.natas.labs.overthewire.org/`, we login with the same credentials as natas21.
+Let's check http://natas21-experimenter.natas.labs.overthewire.org/, we login with the same credentials as natas21.
 
 ![page](pics/natas/2025-07-19-23-38-27.png)
 
@@ -1176,3 +1176,41 @@ Immediately after sending the request, we refresh the main page and we can see t
 ![password](pics/natas/2025-07-20-00-24-45.png)
 
 Password: d8rwGBl0Xslg3b76uh3fEbSlnOUBlozz
+
+## Natas 23
+
+> The page shows this form:  
+> ![page](pics/natas/2025-07-20-19-29-56.png)  
+> Wow a lot of stuff!  
+> The source code is:
+> ```php
+> <?php
+> session_start();
+> 
+> if(array_key_exists("revelio", $_GET)) {
+>     // only admins can reveal the password
+>     if(!($_SESSION and array_key_exists("admin", $_SESSION) and $_SESSION["admin"] == 1)) {
+>       header("Location: /");
+>     }
+> }
+> ?>
+> 
+> 
+> <?php
+>     if(array_key_exists("revelio", $_GET)) {
+>       print "You are an admin. The credentials for the next level are:<br>";
+>       print "<pre>Username: natas23\n";
+>       print "Password: <censored></pre>";
+>     }
+> ?>
+> ```
+
+The code starts a session and checks if the `revelio` parameter is set in the request. If it is, it checks if the user is an admin. If not, it redirects to the main page. If the user is an admin, it prints the credentials for the next level.
+
+There is no robots.txt file. There are no hidden tips in the page.
+
+By looking on https://www.php.net/manual/en/function.header.php we can see that the `header` function is used to send a raw HTTP header to the client. But there is an issue with the code: it doesn't call `exit` after the `header` function, which means that the rest of the code will still be executed. So we simply have to intercept the request with Burp, send it to repeater, send the request and check the output page avoiding rediraction:
+
+![password](pics/natas/2025-07-20-20-04-01.png)
+
+Password: dIUQcI3uSus1JEOSSWRAEXBG8KbR8tRs

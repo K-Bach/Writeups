@@ -1214,3 +1214,35 @@ By looking on https://www.php.net/manual/en/function.header.php we can see that 
 ![password](pics/natas/2025-07-20-20-04-01.png)
 
 Password: dIUQcI3uSus1JEOSSWRAEXBG8KbR8tRs
+
+## Natas 24
+
+> The page shows this form:  
+> ![form](pics/natas/2025-07-25-19-19-45.png)  
+> The source code is:  
+> ```php
+> <?php
+>     if(array_key_exists("passwd",$_REQUEST)){
+>         if(strstr($_REQUEST["passwd"],"iloveyou") && ($_REQUEST["passwd"] > 10 )){
+>             echo "<br>The credentials for the next level are:<br>";
+>             echo "<pre>Username: natas24 Password: <censored></pre>";
+>         }
+>         else{
+>             echo "<br>Wrong!<br>";
+>         }
+>     }
+>     // morla / 10111
+> ?>
+> ```
+
+The code checks if the `passwd` parameter is set in the request. If it is, it uses `strstr` to check if the password contains the string "iloveyou" and checks if `$_REQUEST["passwd"]` is greater than 10. If both conditions are met, it prints the credentials for the next level. If not, it prints "Wrong!". `strstr` is a PHP function that returns the portion of the string starting from the first occurrence of the specified substring. If the substring is not found, it returns false.  
+Now the question is, what happens when we compare a string with an integer?  
+When a string is compared with an integer, PHP will try to convert the string to an integer. If the string starts with a number, it will be converted to that number. If it doesn't start with a number, it will be converted to 0.  
+So if we send a request with `passwd=iloveyou`, the string will be converted to 0, which is not greater than 10, so the condition will be false.  
+If we send a request with `passwd=10iloveyou`, the string will be converted to 10, which is equal to 10, so the condition will be false again.  
+If we send a request with `passwd=11iloveyou`, the string will be converted to 11, which is greater than 10, so the condition will be true and we will get the credentials for the next level.
+
+![password](pics/natas/2025-08-05-16-41-30.png)
+
+Password: MeuqmfJ8DDKuTr5pcvzFKSwlxedZYEWd
+

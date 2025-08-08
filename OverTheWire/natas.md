@@ -1246,3 +1246,32 @@ If we send a request with `passwd=11iloveyou`, the string will be converted to 1
 
 Password: MeuqmfJ8DDKuTr5pcvzFKSwlxedZYEWd
 
+## Natas 25
+
+> The page shows this form:  
+> ![form](pics/natas/2025-08-08-11-32-19.png)  
+> The source code is:  
+> ```php
+> <?php
+>     if(array_key_exists("passwd",$_REQUEST)){
+>         if(!strcmp($_REQUEST["passwd"],"<censored>")){
+>             echo "<br>The credentials for the next level are:<br>";
+>             echo "<pre>Username: natas25 Password: <censored></pre>";
+>         }
+>         else{
+>             echo "<br>Wrong!<br>";
+>         }
+>     }
+>     // morla / 10111
+> ?>  
+> ```
+
+As the source code shows, to get the credentials for the next level we have to make `strcmp($_REQUEST["passwd"],"<censored>")` return 0 (the two strings are the same) or NULL (error). Let's look for strcmp weird behaviours. At https://www.php.net/manual/en/function.strcmp.php we understand how the function works and we also see some weird behaviours, in the `User Contributed Notes` section.
+
+![weird](pics/natas/2025-08-08-11-43-48.png)
+
+Based on the image, sending an array as input might be the key to bypassing the strcmp check, let's try it:
+
+![password](pics/natas/2025-08-08-12-03-59.png)
+
+Password: ckELKUWZUfpOv6uxS6M7lXBpBssJZ4Ws

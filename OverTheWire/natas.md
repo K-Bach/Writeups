@@ -1275,3 +1275,95 @@ Based on the image, sending an array as input might be the key to bypassing the 
 ![password](pics/natas/2025-08-08-12-03-59.png)
 
 Password: ckELKUWZUfpOv6uxS6M7lXBpBssJZ4Ws
+
+## Natas 26
+
+> The page shows this:  
+> ![page](pics/natas/2025-08-09-15-07-26.png)  
+> ```php
+> <?php
+>     // cheers and <3 to malvina
+>     // - morla
+> 
+>     function setLanguage(){
+>         /* language setup */
+>         if(array_key_exists("lang",$_REQUEST))
+>             if(safeinclude("language/" . $_REQUEST["lang"] ))
+>                 return 1;
+>         safeinclude("language/en"); 
+>     }
+>     
+>     function safeinclude($filename){
+>         // check for directory traversal
+>         if(strstr($filename,"../")){
+>             logRequest("Directory traversal attempt! fixing request.");
+>             $filename=str_replace("../","",$filename);
+>         }
+>         // dont let ppl steal our passwords
+>         if(strstr($filename,"natas_webpass")){
+>             logRequest("Illegal file access detected! Aborting!");
+>             exit(-1);
+>         }
+>         // add more checks...
+> 
+>         if (file_exists($filename)) { 
+>             include($filename);
+>             return 1;
+>         }
+>         return 0;
+>     }
+>     
+>     function listFiles($path){
+>         $listoffiles=array();
+>         if ($handle = opendir($path))
+>             while (false !== ($file = readdir($handle)))
+>                 if ($file != "." && $file != "..")
+>                     $listoffiles[]=$file;
+>         
+>         closedir($handle);
+>         return $listoffiles;
+>     } 
+>     
+>     function logRequest($message){
+>         $log="[". date("d.m.Y H::i:s",time()) ."]";
+>         $log=$log . " " . $_SERVER['HTTP_USER_AGENT'];
+>         $log=$log . " \"" . $message ."\"\n"; 
+>         $fd=fopen("/var/www/natas/natas25/logs/natas25_" . session_id() .".log","a");
+>         fwrite($fd,$log);
+>         fclose($fd);
+>     }
+> ?>
+> 
+> <h1>natas25</h1>
+> <div id="content">
+> <div align="right">
+> <form>
+> <select name='lang' onchange='this.form.submit()'>
+> <option>language</option>
+> <?php foreach(listFiles("language/") as $f) echo "<option>$f</option>"; ?>
+> </select>
+> </form>
+> </div>
+> 
+> <?php  
+>     session_start();
+>     setLanguage();
+>     
+>     echo "<h2>$__GREETING</h2>";
+>     echo "<p align=\"justify\">$__MSG";
+>     echo "<div align=\"right\"><h6>$__FOOTER</h6><div>";
+> ?>
+
+The page displays a long text and gives us the option to change the language (en or de) using a dropdown menu.
+The source code shows that the `setLanguage` function is called, which includes a language file based on the `lang` parameter in the request. The `safeinclude` function checks for directory traversal attempts (using `../`) and illegal file access (specifically looking for `natas_webpass`), and includes the specified file if it exists. The `listFiles` function lists all files in the `language/` directory, which are then displayed in the dropdown menu.
+
+Even though the `safeinclude` function provides some level of protection against directory traversal, it is still possible to exploit it by using `....//` instead of `../`. This is because the `strstr` function only checks for the exact string `../`, and does not account for variations in the number of dots or slashes. Let's try to read the logs by setting `lang=....//logs/natas25_sessionId.log` in the request. We can get the session ID from the cookies.
+
+![logs](pics/natas/2025-08-10-11-04-21.png)
+
+Now if we check the `logRequest` function, we can see that it we have complete control on the `user_agent` field. This means we can craft our own user agent string to include an executable php code that will be executed when the log file is read. The php code will be `<?php system($_GET['cmd']); ?>`, which allows us to execute arbitrary commands on the server. We will pass the arbitrary command in the query string by setting `cmd` in the URL. Let's try it.
+
+![password](pics/natas/2025-08-10-11-23-08.png)
+
+Password: cVXXwxMS3Y26n5UZU89QgpGmWCelaQlE
+

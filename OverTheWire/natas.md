@@ -1521,3 +1521,146 @@ Now we put that string in our `drawing` cookie and request the main page. This w
 ![password](pics/natas/2025-08-14-16-31-53.png)
 
 Password: u3RRffXjysjgwFU6b9xa23i6prmUsYne
+
+# natas28
+
+> The page shows this form:  
+> ![form](pics/natas/2025-08-15-11-56-44.png)  
+> The source code is:  
+> ```php
+> <?php
+> 
+> // morla / 10111
+> // database gets cleared every 5 min
+> 
+> /*
+> CREATE TABLE `users` (
+>   `username` varchar(64) DEFAULT NULL,
+>   `password` varchar(64) DEFAULT NULL
+> );
+> */
+> 
+> 
+> function checkCredentials($link,$usr,$pass){
+> 
+>     $user=mysqli_real_escape_string($link, $usr);
+>     $password=mysqli_real_escape_string($link, $pass);
+> 
+>     $query = "SELECT username from users where username='$user' and password='$password' ";
+>     $res = mysqli_query($link, $query);
+>     if(mysqli_num_rows($res) > 0){
+>         return True;
+>     }
+>     return False;
+> }
+> 
+> 
+> function validUser($link,$usr){
+> 
+>     $user=mysqli_real_escape_string($link, $usr);
+> 
+>     $query = "SELECT * from users where username='$user'";
+>     $res = mysqli_query($link, $query);
+>     if($res) {
+>         if(mysqli_num_rows($res) > 0) {
+>             return True;
+>         }
+>     }
+>     return False;
+> }
+> 
+> 
+> function dumpData($link,$usr){
+> 
+>     $user=mysqli_real_escape_string($link, trim($usr));
+> 
+>     $query = "SELECT * from users where username='$user'";
+>     $res = mysqli_query($link, $query);
+>     if($res) {
+>         if(mysqli_num_rows($res) > 0) {
+>             while ($row = mysqli_fetch_assoc($res)) {
+>                 // thanks to Gobo for reporting this bug!
+>                 //return print_r($row);
+>                 return print_r($row,true);
+>             }
+>         }
+>     }
+>     return False;
+> }
+> 
+> 
+> function createUser($link, $usr, $pass){
+> 
+>     if($usr != trim($usr)) {
+>         echo "Go away hacker";
+>         return False;
+>     }
+>     $user=mysqli_real_escape_string($link, substr($usr, 0, 64));
+>     $password=mysqli_real_escape_string($link, substr($pass, 0, 64));
+> 
+>     $query = "INSERT INTO users (username,password) values ('$user','$password')";
+>     $res = mysqli_query($link, $query);
+>     if(mysqli_affected_rows($link) > 0){
+>         return True;
+>     }
+>     return False;
+> }
+> 
+> 
+> if(array_key_exists("username", $_REQUEST) and array_key_exists("password", $_REQUEST)) {
+>     $link = mysqli_connect('localhost', 'natas27', '<censored>');
+>     mysqli_select_db($link, 'natas27');
+> 
+> 
+>     if(validUser($link,$_REQUEST["username"])) {
+>         //user exists, check creds
+>         if(checkCredentials($link,$_REQUEST["username"],$_REQUEST["password"])){
+>             echo "Welcome " . htmlentities($_REQUEST["username"]) . "!<br>";
+>             echo "Here is your data:<br>";
+>             $data=dumpData($link,$_REQUEST["username"]);
+>             print htmlentities($data);
+>         }
+>         else{
+>             echo "Wrong password for user: " . htmlentities($_REQUEST["username"]) . "<br>";
+>         }
+>     }
+>     else {
+>         //user doesn't exist
+>         if(createUser($link,$_REQUEST["username"],$_REQUEST["password"])){
+>             echo "User " . htmlentities($_REQUEST["username"]) . " was created!";
+>         }
+>     }
+> 
+>     mysqli_close($link);
+> } else {
+> ?>
+> ```
+
+The code checks if the username and password fields are set in the request. If they are, it connects to the MySQL database, selects the appropriate database (natas27), and then checks if the username corresponds to a valid user using `validUser()`. If the user is valid, it checks the credentials using `checkCredentials()`. If the credentials are correct, it displays a welcome message and the user's data using `dumpData()`. If the credentials are incorrect, it displays an error message. If the user does not exist, it creates a new user using `createUser()`.
+
+The `validUser()` function calls `mysqli_real_escape_string()` to sanitize the username input. The sanitized username is then used in the SQL query to look up the user in the database. If the user exists, the function returns True. If the user does not exist, it returns false.
+
+The `checkCredentials()` function works similarly, sanitizing both the username and password inputs before using them in the SQL query. If the credentials are valid, it returns True; otherwise, it returns false.
+
+The `dumpData()` function retrieves and displays the user's data from the database. It sanitizes the username input and uses it in the SQL query to fetch the user's information. If the user exists, it returns the data in a human-readable format using `print_r()`. If the user does not exist, it returns false.
+
+The `createUser()` function is responsible for creating a new user in the database. It first checks if the username has leading or trailing whitespace and rejects any such attempts, returning False. It then sanitizes the username and password inputs before using them in the SQL query to insert the new user into the database. If the user is successfully created, it returns True; otherwise, it returns false.
+
+SQLI is not possible due to the use of prepared statements and input sanitization. There are some ways to bypass `mysqli_real_escape_string()`, but is seems like this is not the case.  
+If we look closely at the code, we can see that the input sanitization is not consistently applied across all functions:
+- `checkCredentials()` and `validUser()` use only `mysqli_real_escape_string()`. 
+- `dumpData()` and `createUser()` functions, on the other hand, use a combination of `mysqli_real_escape_string()` and additional checks to ensure the input is safe. 
+- `dumpData()` trims whitespace from the username input using `trim()`.
+- `createUser()` checks for leading and trailing whitespace before creating a new user. It also limits the length of the username and password to 64 characters (limit set in `CREATE TABLE` statement) using `substr()`.
+
+The trim checks look only for whitespace characters that are in the beginning and end of the string, but not in the middle. So for example "test   H" would be considered valid input.  
+After a bit of thinking I realized that this could be exploited by creating a user with a username like "natas28 + 57 spaces or null values + H", the last character is random, and password "test" (choose whatever you want). This would pass the `validUser()` check, returning false, and it would also pass the trim check in `createUser()`, allowing the user to be created successfully. BUT, since the username is truncated to 64 characters, the actual username stored in the database would be "natas28 + 57 spaces or null values", without the last character. For how Mysql manages null values and trailing or leading whitespace (they are ignored when creating an entry), the created user would effectively have "natas28" as username, successfully creating a duplicate user.  
+Now if we login with username "natas28" and password "123", we would be able to access the account of the original user. Why? Because:
+- since we just created a user with username "natas28" and password "123", the `checkCredentials()` function would return true.
+- Then `dumpData()` would retrieve the data for the original user "natas28". This because it queries only with the username, and gets the first entry.
+
+![create user](pics/natas/2025-08-15-16-24-09.png)
+
+![login](pics/natas/2025-08-15-15-30-33.png) 
+
+Password: 1JNwQM1Oi6J6j1k49Xyw7ZN6pXMQInVj

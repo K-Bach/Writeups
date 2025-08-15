@@ -1522,7 +1522,7 @@ Now we put that string in our `drawing` cookie and request the main page. This w
 
 Password: u3RRffXjysjgwFU6b9xa23i6prmUsYne
 
-## natas28
+## natas 28
 
 > The page shows this form:  
 > ![form](pics/natas/2025-08-15-11-56-44.png)  
